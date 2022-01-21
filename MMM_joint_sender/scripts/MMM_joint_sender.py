@@ -245,12 +245,14 @@ def validateJointInput(char, joint):
     scene = moveit_commander.PlanningSceneInterface()
 def jointAngleButtonEnvoke(group,j1,j2,j3,j4,j5,j6):
     print("Joint Angles Submitted")
+    group.clear_pose_targets()
     for degrees in (j1,j2,j3,j4,j5,j6):
         if degrees:
             degrees = (float(degrees) * 180)/pi
         else:
             degrees = float(0)
     joint_goal = group.get_current_joint_values()
+    print(joint_goal)
     joint_goal[0] = float(j1) * (pi/180)
     joint_goal[1] = float(j2) * (pi/180)
     joint_goal[2] = float(j3) * (pi/180)
@@ -316,11 +318,11 @@ def currentPoseStateCallback(group,e1,e2,e3,e4,e5,e6, oldPose=Pose()):
         e3.delete(0,100)
         e3.insert(0,str(round(pose.position.z,4)))
         e4.delete(0,100)
-        e4.insert(0,str(round(roll * (180/pi),4)))
+        e4.insert(0,str(round(roll)))
         e5.delete(0,100)
-        e5.insert(0,str(round(pitch * (180/pi),4)))
+        e5.insert(0,str(round(pitch)))
         e6.delete(0,100)
-        e6.insert(0,str(round(yaw * (180/pi),4)))
+        e6.insert(0,str(round(yaw)))
         oldPose = pose
 
 def posesEqual(pose1,e1,e2,e3,e4,e5,e6):
