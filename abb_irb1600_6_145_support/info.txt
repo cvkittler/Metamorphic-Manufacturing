@@ -1,0 +1,19 @@
+roslaunch abb_irb1600_6_12_moveit_config moveit_planning_execution.launch sim:=false robot_ip:=192.168.100.100
+roslaunch abb_irb1600_6_145_support robot.launch sim:=true
+edit the src/abb_experimental/abb_irb1600_support/urdf/irb1600_6_12_macro.xacro file to make the legths right
+
+setting up:
+install ros melodic
+install ros industial
+install ros abb drivers
+install out code
+install ros realsense2_camera
+install ros realsense2_discription
+
+things ive had to do to get this to work
+change the arm config to the one in washburn
+in the robot_interface_download_irb1600_6_145 make sure J23_coupled is false
+robot ip is 192.168.100.100
+pi ip is 192.168.100.105
+master pc this one usally is 192.168.100.104
+use chrony to sync the pi and this pc to the same clock
