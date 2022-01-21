@@ -4,6 +4,9 @@
   <!-- The planning and execution components of MoveIt! configured to run -->
   <!-- using the ROS-Industrial interface. -->
  
+  <!-- connect the camra tf to the robot --> 
+  <node pkg="tf" type="static_transform_publisher" name="World_Camera" args="0 0 0 0 0 0 tool0 camera_link 100"/>
+
   <!-- Load Joint Names -->
   <rosparam command="load" file="$(find abb_irb1600_6_145_support)/config/joint_names_irb1600_6_145.yaml" />
  
@@ -38,12 +41,12 @@
     <arg name="publish_monitored_planning_scene" value="true" />
   </include>
 
-  <!-- <include file="$(find abb_irb1600_6_12_moveit_config)/launch/moveit_rviz.launch">
+  <include file="$(find abb_irb1600_6_12_moveit_config)/launch/moveit_rviz.launch">
     <arg name="config" value="true"/>
-  </include> -->
+  </include>
 
   <!-- load the text target sender -->
-  <!-- <node name="MMM_joint_sender" pkg="MMM_joint_sender" type="MMM_joint_sender.py" output="screen"/> -->
+  <node name="MMM_joint_sender" pkg="MMM_joint_sender" type="MMM_joint_sender.py" output="screen"/>
 
   <!-- Try and launch the camra on the pi -->
   
@@ -55,7 +58,6 @@
   <include machine="pi" file="/opt/ros/kinetic/share/realsense2_camera/launch/mmm_mqp.launch" />
   -->
 
-  <!-- connect the camra tf to the robot --> 
-  <node pkg="tf" type="static_transform_publisher" name="World_Camera" args="0 0 0 0 0 0 tool0 camera_link 100"/>
- 
+  <include file="$(find realsense2_camera)/launch/demo_pointcloud.launch" >
+  </include>
 </launch>
