@@ -1,0 +1,37 @@
+<launch>
+  <!-- 3d Scanning launch file -->
+  <arg name="rviz" default="false" />
+  
+  <!-- start camera -->
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch" >
+    <arg name="color_fps"         value="15"/>
+    <arg name="depth_fps"         value="15"/>
+    <arg name="depth_width"       value="640"/>
+    <arg name="depth_height"      value="480"/>
+    <arg name="initial_reset"     value="true" />
+    <arg name="align_depth"       value="true" />
+    <arg name="unite_imu_method"  value="linear_interpolation" />
+    <arg name="enable_gyro"       value="true" />
+    <arg name="enable_accel"      value="true" />
+  </include>
+
+  <!-- start imu filter -->
+  <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node">
+    <param name="_use_mag"      value="false" />
+    <param name="_publish_tf"   value="false"/>
+    <param name="_world_frame"  value="enu" />
+    <param name="/imu/data_raw" value="/camera/imu" />
+    <param name="/imu/data"     value="/rtabmap/imu" />
+  </node>
+
+  <include file="$(find rtabmap_ros)/launch/rtabmap.launch" >
+    <arg name="rtabmap_args"      value="--delete_db_on_start --Optimizer/GravitySigma 0.3"/>
+    <arg name="depth_topic"       value="/camera/aligned_depth_to_color/image_raw"/>
+    <arg name="rgb_topic"         value="/camera/color/image_raw"/>
+    <arg name="camera_info_topic" value="/camera/color/camera_info"/>
+    <arg name="approx_sync"       value="false" />
+    <arg name="wait_imu_to_init"  value="false" />
+    <arg name="imu_topic"         value="/rtabmap/imu" />
+    <arg name="rviz"              value="$(arg rviz)" />
+  </include>
+</launch>

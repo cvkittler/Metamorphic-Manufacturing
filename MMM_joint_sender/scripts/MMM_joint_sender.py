@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
 from os import kill
+
+from click import command
 import rospy
 
 import Tkinter as tk
+from std_msgs.msg import Bool
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import Pose
 import moveit_commander
@@ -20,6 +23,7 @@ j5Angle = 4
 j6Angle = 5
 group_name = "manipulator"
 altTop = False
+toggleButtonState = True
 
 def main():
     master = tk.Tk()
@@ -195,23 +199,42 @@ def main():
     e6right = tk.Entry(frameRight)
     l6right.pack(pady=10)
     e6right.pack()
-    
+
+    masterThread = None
 
     rospy.init_node('joint_publisher_gui')
-    masterThread = None
+    pub = rospy.Publisher("pointcloudOnOff", Bool, queue_size=10)
+    
+    global toggleButtonState
+    toggle_btn = tk.Button(frameRight, text="Toggle pointCloud", relief="raised",command = lambda: toggle(toggle_btn, pub))
+    toggle_btn.pack(pady=20)
+    rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         try:
-            rospy.Subscriber("joint_states", JointState, lambda msg: currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right))
 
+            rospy.Subscriber("joint_states", JointState, lambda msg: currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right))
             #start window
             masterThread = Thread(master.mainloop()) 
-
-            rospy.spin()
+            
+            rate.sleep()
             print("Cycel")
         except KeyboardInterrupt:
             print("Recived Keyboard Interrupt")
             killPorgram(master)
     masterThread.join()
+
+#for toggling point cloud combinding
+def toggle(toggle_btn, pub):
+    global toggleButtonState
+    toggleButtonState = not toggleButtonState
+
+    pub.publish(toggleButtonState)
+
+    if toggle_btn.config('relief')[-1] == 'sunken':
+        toggle_btn.config(relief="raised")
+    else:
+        toggle_btn.config(relief="sunken")
+
 
 def frameToggle(frameleftAlt,frameLeft,jButtoncenter):
     global altTop
