@@ -5,7 +5,7 @@
   <!-- using the ROS-Industrial interface. -->
  
   <!-- connect the camra tf to the robot --> 
-  <node pkg="tf" type="static_transform_publisher" name="World_Camera" args="0 0 0 0 -1.57 0 tool0 camera_link 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="World_Camera" args="0 0 0 0 -1.57 0 tool0 camera_link 100" unless="$(arg sim)"/>
 
   <!-- Load Joint Names -->
   <rosparam command="load" file="$(find abb_irb1600_6_145_support)/config/joint_names_irb1600_6_145.yaml" />
@@ -59,6 +59,6 @@
   -->
 
   <include file="$(find mmm_point_cloud_combiner)/launch/scanning.launch" >
-    <arg name="rviz" value="true"/>
+    <arg name="rviz" value="false"/>
   </include>
 </launch>

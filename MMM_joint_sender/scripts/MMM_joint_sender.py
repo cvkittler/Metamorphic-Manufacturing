@@ -13,6 +13,7 @@ import moveit_commander
 import sys
 from math import pi
 from threading import Thread
+from std_srvs.srv import Empty
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 j1Angle = 0
@@ -206,7 +207,7 @@ def main():
     pub = rospy.Publisher("pointcloudOnOff", Bool, queue_size=10)
     
     global toggleButtonState
-    toggle_btn = tk.Button(frameRight, text="Toggle pointCloud", relief="raised",command = lambda: toggle(toggle_btn, pub))
+    toggle_btn = tk.Button(frameRight, text="Start Scan", relief="raised",command = scanButton)
     toggle_btn.pack(pady=20)
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
@@ -224,17 +225,14 @@ def main():
     masterThread.join()
 
 #for toggling point cloud combinding
-def toggle(toggle_btn, pub):
-    global toggleButtonState
-    toggleButtonState = not toggleButtonState
-
-    pub.publish(toggleButtonState)
-
-    if toggle_btn.config('relief')[-1] == 'sunken':
-        toggle_btn.config(relief="raised")
-    else:
-        toggle_btn.config(relief="sunken")
-
+def scanButton():
+    rospy.wait_for_service('mmm_scan_service')
+    try:
+        scan_routine = rospy.ServiceProxy('mmm_scan_service', Empty)
+        scan_routine()
+        return 
+    except rospy.ServiceException as e:
+        print("Service call failed: %s"%e)
 
 def frameToggle(frameleftAlt,frameLeft,jButtoncenter):
     global altTop
@@ -257,6 +255,8 @@ def killPorgram(master):
 def validateJointInput(char, joint):
     print("joint " + joint + " entry set to " + char)
     try:
+        if(char is "-"):
+            return True
         if len(char) > 0:
             float(char)
         return True
@@ -283,7 +283,7 @@ def jointAngleButtonEnvoke(group,j1,j2,j3,j4,j5,j6):
     joint_goal[4] = float(j5) * (pi/180)
     joint_goal[5] = float(j6) * (pi/180)
 
-    group.go(joint_goal, wait=True)
+    group.go(joint_goal, wait=False)
 
     group.stop()
 
@@ -301,7 +301,7 @@ def targetPoseButtonEnvoke(group,X,Y,Z,rX,rY,rZ):
     group.set_pose_target(pose_goal)
     planSuccess = group.plan()
     print(planSuccess)
-    group.go()
+    group.go(wait=False)
 
     group.stop()
 
@@ -332,7 +332,9 @@ def currentPoseStateCallback(group,e1,e2,e3,e4,e5,e6, oldPose=Pose()):
     orientation_q = pose.orientation
     orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
     (roll, pitch, yaw) = euler_from_quaternion (orientation_list)
-
+    roll    = roll * (180/pi)
+    pitch   = pitch * (180/pi)
+    yaw     = yaw * (180/pi)
     if not posesEqual(oldPose,e1,e2,e3,e4,e5,e6):
         e1.delete(0,100)
         e1.insert(0,str(round(pose.position.x,4)))
@@ -341,11 +343,11 @@ def currentPoseStateCallback(group,e1,e2,e3,e4,e5,e6, oldPose=Pose()):
         e3.delete(0,100)
         e3.insert(0,str(round(pose.position.z,4)))
         e4.delete(0,100)
-        e4.insert(0,str(round(roll)))
+        e4.insert(0,str(round(roll,4)))
         e5.delete(0,100)
-        e5.insert(0,str(round(pitch)))
+        e5.insert(0,str(round(pitch,4)))
         e6.delete(0,100)
-        e6.insert(0,str(round(yaw)))
+        e6.insert(0,str(round(yaw,4)))
         oldPose = pose
 
 def posesEqual(pose1,e1,e2,e3,e4,e5,e6):
