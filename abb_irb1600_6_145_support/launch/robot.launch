@@ -5,7 +5,7 @@
   <!-- using the ROS-Industrial interface. -->
  
   <!-- connect the camra tf to the robot --> 
-  <node pkg="tf" type="static_transform_publisher" name="World_Camera" args="0 0 0 0 -1.57 0 tool0 camera_link 100" unless="$(arg sim)"/>
+  <!-- <node pkg="tf" type="static_transform_publisher" name="World_Camera" args="0 0 0 0 -1.57 0 tool0 camera_link 100" unless="$(arg sim)"/> -->
 
   <!-- Load Joint Names -->
   <rosparam command="load" file="$(find abb_irb1600_6_145_support)/config/joint_names_irb1600_6_145.yaml" />
@@ -46,7 +46,7 @@
   </include>
 
   <!-- load the text target sender -->  
-  <node name="MMM_joint_sender" pkg="MMM_joint_sender" type="MMM_joint_sender.py" output="screen"/>
+  <node name="MMM_joint_sender" pkg="MMM_joint_sender" type="MMM_joint_sender.py" output="log"/>
 
   <!-- Try and launch the camra on the pi -->
   
@@ -58,7 +58,8 @@
   <include machine="pi" file="/opt/ros/kinetic/share/realsense2_camera/launch/mmm_mqp.launch" />
   -->
 
-  <include file="$(find mmm_point_cloud_combiner)/launch/scanning.launch" >
+  <include file="$(find mmm_point_cloud_combiner)/launch/scanning.launch" output="log">
     <arg name="rviz" value="false"/>
   </include>
+  <node name="mmm_scan_service" pkg="MMM_joint_sender" type="mmm_scan_service.py" output="screen"/>
 </launch>

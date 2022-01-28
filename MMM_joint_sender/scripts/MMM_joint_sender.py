@@ -207,7 +207,7 @@ def main():
     pub = rospy.Publisher("pointcloudOnOff", Bool, queue_size=10)
     
     global toggleButtonState
-    toggle_btn = tk.Button(frameRight, text="Start Scan", relief="raised",command = scanButton)
+    toggle_btn = tk.Button(frameRight, text="Start Scan", relief="raised",command = lambda: Thread(target=scanButton).start())
     toggle_btn.pack(pady=20)
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
