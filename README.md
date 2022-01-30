@@ -88,3 +88,4 @@ rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x:45, y:30, z:911}'
 - [ ] setup remote roscore procedure and stuffs
 - [ ] Figure out the automatic configuration of PosLMax and PosRMax
 - [ ] Fix info being published so it actually publishes while moving (if possible)
+- [ ] tool offsets
