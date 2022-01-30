@@ -1,3 +1,9 @@
+# Install
+Running ROS Melodic on Raspberry Pi OS. Image here: http://sar-lab.net/teaching/ros-images-for-raspberry-pi/
+Enable the GUI
+Install Pigpio library (if its not installed, cant remember)
+Clone THIS BRANCH such that the package is in ~/catkin_ws/src/
+
 # ROS STUFF
 ## Launching
 ###### In Terminal 1:
