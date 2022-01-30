@@ -1,0 +1,8 @@
+prefix=/home/pi/catkin_ws/src/mmmqp_eoat/build/devel
+
+Name: mmmqp_eoat
+Description: Description of mmmqp_eoat
+Version: 0.0.0
+Cflags: -I/home/pi/catkin_ws/src/mmmqp_eoat/include
+Libs: -L${prefix}/lib -lmmmqp_eoat
+Requires: roscpp rospy std_msgs
