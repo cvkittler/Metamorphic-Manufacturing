@@ -100,6 +100,23 @@ rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x:45, y:30, z:-732}
 rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x:45, y:30, z:911}'
 ```
 
+# Raspberry Pi Stuff
+## Wiring Pinout
+To change these, edit the file  ~/catkin_ws/src/mmmqp_eoat/src/manipulator.h
+Use  | BCM Pin 3
+------------- | -------------
+EN_L  | 5
+DIR_L  | 6
+STEP_L  | 13
+EN_R  | 14
+DIR_R  | 15
+STEP_R  | 18
+Left Inner Limit Switch  | 17
+Left Outer Limit Switch  | 27
+Right Inner Limit Switch  | 22
+Right Outer Limit Switch  | 10
+
+![Raspberry Pi 4 Pinout](https://www.etechnophiles.com/wp-content/uploads/2021/01/R-Pi-4-GPIO-Pinout.jpg)
 
 # Random Crap
 ## Geany Build commands
