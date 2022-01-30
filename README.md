@@ -81,3 +81,9 @@ rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x:45, y:30, z:911}'
 
   execute: sudo "./%e"
  ```
+ 
+ # TODO
+- [ ] Launch Files etc...
+- [ ] setup automatic launch on raspi turn on
+- [ ] setup remote roscore procedure and stuffs
+- [ ] Figure out the automatic configuration of PosLMax and PosRMax
