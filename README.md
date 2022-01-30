@@ -1,8 +1,31 @@
-# Install
+# Installing and Setup
+## OS and ROS
 Running ROS Melodic on Raspberry Pi OS. Image here: http://sar-lab.net/teaching/ros-images-for-raspberry-pi/
+
 Enable the GUI
+
 Install Pigpio library (if its not installed, cant remember)
-Clone THIS BRANCH such that the package is in ~/catkin_ws/src/
+
+Clone THIS BRANCH such that the package is in ~/catkin_ws/src/ (ie you get ~/catkin_ws/src/mmmqp_eoat/src/EOAT_c.cpp etc...)
+
+
+
+## Code
+Edit the runmodes variables in the main file (~/catkin_ws/src/mmmqp_eoat/src/EOAT_c.cpp) to run the program how you desire
+
+- autosetup: 
+  - Determines if the EOAT requires user confirmation prior to initializing. 
+  - If you are rewiring or running this for the first time, you should probably set this to false until you check things are wired properly.
+  - If you are using manual mode (see variable "Jogging") it doesnt matter what this is set as.
+  - If you are using automatic mode (see variable "Jogging") this should be set as true.
+
+- Jogging:
+  - Sets the mode between Manual (true) and Automatic (false)
+  - In Manual mode (true), the user issues commands directly via the command line
+  - In Automatic mode (false), the EOAT will follow commands issued via the "mmm_eoat_command" topic
+
+- testTooling
+  - Determines if the EOAT will perform the preprogrammed motion tests
 
 # ROS STUFF
 ## Launching
