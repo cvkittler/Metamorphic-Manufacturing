@@ -90,14 +90,14 @@ Publish to this topic with the command "rostopic pub -r 10 /mmm_eoat_command geo
 ```
 Examples:
 //Move to Left = 45mm, Right = 30mm at a speed of 3mm/s
-rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x:45, y:30, z:3}'
+rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x: 45, y: 30, z: 3}'
 
 //Recalibrate the Manipulator
-rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x:45, y:30, z:-732}'
+rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x: 45, y: 30, z: -732}'
 
 
 //Initiate an Emergency Stop
-rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x:45, y:30, z:911}'
+rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x: 45, y: 30, z: 911}'
 ```
 
 # Raspberry Pi Stuff
