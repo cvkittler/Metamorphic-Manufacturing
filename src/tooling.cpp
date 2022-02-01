@@ -37,6 +37,22 @@ void Tooling::calibrateTooling(){
 
 
 /**
+ * Calibrates the manipulator centers
+ */ 
+void Tooling::calibrateCenters(){
+	this->moveManipulators(120,120,10);
+	printf("Checking left center....\n");
+	this->left.calibrateCenter();
+	printf("Left Center Set at %f\n",this->left.maxPosition);
+	printf("Checking right center\n");
+	this->right.calibrateCenter();
+	printf("Right center set at %f\n",this->right.maxPosition);
+	printf("Centers set\n");
+	this->moveManipulators(0,0,10);
+
+}
+
+/**
  * Moves a manipulator
  *
  * @para position : float : absolute position to move to relative to max open

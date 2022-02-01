@@ -144,6 +144,7 @@ void Manipulator::recoverManipulator(float position, int speed){
 	}
 }
 
+
 /**
  * Calibrates a manipulator by moving it until the max open sensor trips
  */ 
@@ -185,5 +186,38 @@ void Manipulator::calibrateManipulator(){
 	printf("Auto E Stop reinabled\n");
 	
 	
+}
+
+
+/**
+ * sets the maximum closed value for a manipulator
+ */ 
+void Manipulator::calibrateCenter(){
+	int calibratePin;
+	if(this->left){
+		calibratePin = S_L_close;
+	}
+	else{
+		calibratePin = S_R_close;
+	}
+
+	//move the manipulator outwards at 1mm/s till it hits the sensor
+	printf("checking center\n");
+	checkCenter = true; //disable the auto E Stop
+	this->setDirection(true);
+	
+	while(!gpioRead(calibratePin)){
+		this->moveManipulator((this->currentPosition + .5),1);
+		usleep(100);
+	}
+	
+	printf("Sensor Tripped\n");
+	printf("set max\n");
+	this->maxPosition = this->currentPosition;
+	printf("move back\n");
+	this->moveManipulator(115,10);
+	usleep(200);
+	checkCenter = false; //reinable auto estop
+	printf("Auto E Stop reinabled\n");
 }
 

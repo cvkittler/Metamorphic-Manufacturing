@@ -25,6 +25,7 @@
 #define ES_INPUT 9
 
 extern bool calibrating;
+extern bool checkCenter;
 extern bool volatile exceedLimits;
 
 class Manipulator {
@@ -52,6 +53,7 @@ class Manipulator {
 		void manipMoved(float p){
 			currentPosition = currentPosition + p;
 		}
+		void calibrateCenter();
         
 		Manipulator(int a, int b, int c, bool d);
         

@@ -16,6 +16,7 @@ class Tooling{
 		void moveManipulators(float positionL, float positionR, int speed);
 		void recoverTooling(int mode);
 		void stop();
+		void calibrateCenters();
         
 
 };

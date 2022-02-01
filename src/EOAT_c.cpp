@@ -33,6 +33,7 @@ bool testTooling = false; //Test Mode. True will run preprogrammed tests. False 
 
 //Program Variables. Dont change these.
 bool calibrating = false; //Robot calibration status. Disables safeties while calibrating
+bool checkCenter = false; //basically same thing as calibrating, but for center switches
 bool eStopTriggered = false; //Robto ESTOP Status
 bool volatile exceedLimits = false; //has the robot hit a limit switch
 bool recievedInstruction = false; //If robot has recieved instructions
@@ -93,11 +94,13 @@ void recoverySaveData(){
  * Left manipulator exceeds operating bounds. Triggers E Stop
  */
 void leftCloseDetected(int pin, int level, uint32_t tick){
-	if(errorMode ==0){
-		printf("Left manipulator exceeded maximum bounds (too close to center)\n");
-		errorMode = -1;
-		exceedLimits = true;
-		recoverySaveData();
+	if(!checkCenter){
+		if(errorMode ==0){
+			printf("Left manipulator exceeded maximum bounds (too close to center)\n");
+			errorMode = -1;
+			exceedLimits = true;
+			recoverySaveData();
+		}
 	}
 }
 
@@ -105,11 +108,13 @@ void leftCloseDetected(int pin, int level, uint32_t tick){
  * Right manipulator exceeds operating bounds. Triggers E Stop
  */
 void rightCloseDetected(int pin, int level, uint32_t tick){
-	if(errorMode ==0){
-		printf("Right manipulator exceeded maximum bounds (too close to center)\n");
-		errorMode = 1;
-		exceedLimits = true;
-		recoverySaveData();
+	if(!checkCenter){
+		if(errorMode ==0){
+			printf("Right manipulator exceeded maximum bounds (too close to center)\n");
+			errorMode = 1;
+			exceedLimits = true;
+			recoverySaveData();
+		}
 	}
 }
 
@@ -339,13 +344,20 @@ int main(int argc, char *argv[]){
 				//calibrate tooling
 				if(autosetup){
 					eoat.calibrateTooling();
+					eoat.calibrateCenters();
+					posLMax = eoat.left.maxPosition;
+					posRMax = eoat.right.maxPosition;
 					publishCurrentPos();
+					printf("max positions set at %f and %f\n",posLMax,posRMax);
 				}
 				else{
 					printf("Tooling Calibration Necessary. Manipulators will move during calibration.\n");
 					printf("Continue? (y/n)\n");
 					if(yesorno()){
 						eoat.calibrateTooling();
+						eoat.calibrateCenters();
+						posLMax = eoat.left.maxPosition;
+						posRMax = eoat.right.maxPosition;
 						publishCurrentPos();
 					}
 					else{
