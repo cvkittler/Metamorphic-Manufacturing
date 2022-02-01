@@ -31,7 +31,7 @@ Edit the runmodes variables in the main file (~/catkin_ws/src/mmmqp_eoat/src/EOA
 ## Launching
 ###### In Terminal 1:
 ```
-sudo kill all pigpiod
+sudo killall pigpiod
 roscore
 ```
 *note dont run roscore if its being run elsewhere* will update once this is figured out
@@ -103,7 +103,7 @@ rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x:45, y:30, z:911}'
 # Raspberry Pi Stuff
 ## Wiring Pinout
 To change these, edit the file  ~/catkin_ws/src/mmmqp_eoat/src/manipulator.h
-Use  | BCM Pin 3
+Use  | BCM Pin #
 ------------- | -------------
 EN_L  | 5
 DIR_L  | 6
