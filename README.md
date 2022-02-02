@@ -34,7 +34,7 @@ Edit the runmodes variables in the file mmmqp_eoat/src/EOAT_c.cpp to run the pro
 sudo killall pigpiod
 roscore
 ```
-*note dont run roscore if its being run elsewhere* will update once this is figured out
+*note: dont run roscore if its being run elsewhere* will update once this is figured out
 
 ###### In Terminal 2:
 ```
@@ -42,7 +42,7 @@ sudo su
 source catkin_ws/devel/setup.bash
 rosrun mmmqp_eoat mmmqp_eoat_node
 ```
-
+*note: Running the ROS Node as root is necessary since the code and Pigpio library make use of system interrupts, which require elevated permisisons and ros doesnt work with sudo [command]. Be careful with what you do in this terminal window for obvious reasons...
 
 
 ## Information being published to the high level program
