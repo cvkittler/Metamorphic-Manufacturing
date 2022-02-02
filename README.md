@@ -124,7 +124,7 @@ Right Outer Limit Switch  | 10
 
 ![Raspberry Pi 4 Pinout](https://www.etechnophiles.com/wp-content/uploads/2021/01/R-Pi-4-GPIO-Pinout.jpg)
 
-# Random Crap
+# Random Stuff
 ## Geany Build commands
 ```
   compile: g++ -Wall -c "%f"
