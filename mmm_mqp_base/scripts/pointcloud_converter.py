@@ -1,30 +1,38 @@
 #!/usr/bin/env python
-import imp
+from copy import deepcopy
+from email.header import Header
 import rospy
-from sensor_msgs.msg import PointCloud2,PointCloud
+from geometry_msgs.msg import Point32
+from sensor_msgs.msg import PointCloud2,PointCloud,ChannelFloat32
 import ros_numpy as np
-from numpy import zeros, amax
+from numpy import zeros
 from std_srvs.srv import Empty
 
 pub = rospy.Publisher("/mmm_pointcloud", PointCloud, queue_size=1)
-currPointCloud = PointCloud()
-
+savedPoints = None
 def callback(data):
+    global savedPoints
     pc = np.numpify(data)
     points = zeros((pc.shape[0],3))
     points[:,0]=pc['x']
     points[:,1]=pc['y']
     points[:,2]=pc['z']
-    # print(points.shape)
-    # points = points[points[:,2] > 0,:]
-    # print(points.shape)
-    # print(amax(points[:,2]))
-    # print("x:" + str(len(points[:,0])) + " y:" + str(len(points[:,1])) +" z:" + str(len(points[:,2])))
-    currPointCloud = PointCloud()
-    currPointCloud.points = points
+    savedPoints = points
 
 def sendPointCloud(msg):
-    print("Publishing Point Cloud")
+    global savedPoints
+    localPoints = deepcopy(savedPoints)
+    #make header
+    header = Header()
+    header.stamp = rospy.Time.now()
+    header.frame_id = "mmm_pointcloud_frame"
+    #make point cloud
+    currPointCloud = PointCloud()
+    currPointCloud.header = header
+    for i in range(0,len(localPoints[:,0]), 50):
+        currPointCloud.points.append(Point32(localPoints[i,0],localPoints[i,1],localPoints[i,2]))
+        currPointCloud.channels.append(ChannelFloat32())
+    print("Publishing Point Cloud" + str(len(currPointCloud.points)))
     pub.publish(currPointCloud)
     return []
 

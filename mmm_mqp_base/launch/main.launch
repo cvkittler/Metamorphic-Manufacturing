@@ -11,6 +11,8 @@
 
   <!-- connect the camera tf to the robot --> 
   <node pkg="tf" type="static_transform_publisher" name="world_origin" args="0 0 0 -0.349066 0 0 tool0 camera_link 100"/>
+  <!-- connect our point cloud topic to the tf tree --> 
+  <node pkg="tf" type="static_transform_publisher" name="mmm_pointcloud_connector" args="0 0 0 1.5708 3.14 1.5708 camera_link mmm_pointcloud_frame 100"/>
 
   <!-- load the robot_description parameter before launching ROS-I nodes -->
   <include file="$(find abb_irb1600_6_145_support)/launch/planning_context.launch" >

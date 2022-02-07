@@ -38,6 +38,6 @@
     <param name="fixed_frame" type="string" value="base_link" />
   </node>
 
-  <!-- <node name="mmm_pc2_to_pc" pkg="mmm_mqp_base" type="pointcloud_converter.py" output="screen"/> -->
+  <node name="mmm_pc2_to_pc" pkg="mmm_mqp_base" type="pointcloud_converter.py" output="screen"/>
   <node name="mmm_mqp_base_scan_service" pkg="mmm_mqp_base" type="mmm_scan_service.py" output="screen"/>
 </launch>
