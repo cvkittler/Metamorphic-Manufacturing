@@ -8,9 +8,9 @@ from std_srvs.srv import Empty
 
 
 def call_scan_routine():
-    rospy.wait_for_service('mmm_scan_service')
+    rospy.wait_for_service('mmm_processed_pointCloud')
     try:
-        scan_routine = rospy.ServiceProxy('mmm_scan_service', Empty)
+        scan_routine = rospy.ServiceProxy('mmm_processed_pointCloud', Empty)
         print("a" + str(time.time()))
         scan_routine()
         print("b" + str(time.time()))

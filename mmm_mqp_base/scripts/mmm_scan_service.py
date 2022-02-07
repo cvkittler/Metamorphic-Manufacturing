@@ -15,25 +15,24 @@ from laser_assembler.srv import AssembleScans
 # initilize global variables
 group = None
 group_name = "manipulator"
-# points to scan
-points = [[0.,      -0.85,  0.85,   90.,    70,     0.],#top
-          [0.373,   -0.85,  0.747,  90,     90.,    0.],#right 1
-          [0.59,    -0.85,  0.59,   90,     110.,   0.],#right 2
-          [0.373,   -0.85,  0.747,  90,     90.,    0.],#right 1
-          [0.,      -0.85,  0.85,   90.,    70,     0.],#top
-          [-0.373,  -0.85,  0.747,  90,     50.,    0.],#left 1
-          [-0.59,   -0.85,  0.59,   90,     30.,    0.],#left 2
-          [-0.373,  -0.85,  0.747,  90,     50.,    0.]]#left 1
-
-
 assemble_scans = None
 pub = None
+publish_cloud_service = None
+
+# points to scan
+points = [[0.2,      -0.85,  0.85,   90.,    70,     0.],#top
+          [0.573,   -0.85,  0.747,  90,     90.,    0.],#right 1
+          [0.79,    -0.85,  0.59,   90,     110.,   0.],#right 2
+          [0.573,   -0.85,  0.747,  90,     90.,    0.],#right 1
+          [0.2,      -0.85,  0.85,   90.,    70,     0.],#top
+          [-0.573,  -0.85,  0.747,  90,     50.,    0.],#left 1
+          [-0.79,   -0.85,  0.59,   90,     30.,    0.],#left 2
+          [-0.573,  -0.85,  0.747,  90,     50.,    0.]]#left 1
 
 # service request handler
 def handle_scan(req):
-    global pub
+    global pub, points, publish_cloud_service
     print("Request Recived")
-    global points
     # j is froward backwards
     for j in range(-1,1,1):
         for i in range(len(points)):
@@ -41,7 +40,9 @@ def handle_scan(req):
             target_pose[1] += (j * 0.15)
             moveToPoint(target_pose)
             print("Reached Pose " + str(i + 1))
-            sleep(1)
+            sleep(2)
+            publish_cloud_service()
+            sleep(2)
     resp = assemble_scans(rospy.Time(0,0), rospy.get_rostime())
     pub.publish(resp.cloud)
     moveToPoint([0., -0.85, 0.85, -180., 0, -110.])
@@ -71,10 +72,12 @@ def moveToPoint(pose):
     
 def scan_routine():
     rospy.init_node('mmm_scan_service')
-    global pub, assemble_scans
+    global pub, assemble_scans, publish_cloud_service
     pub = rospy.Publisher("/mmm_full_scan", PointCloud2, queue_size=1)
     rospy.wait_for_service('assemble_scans')
+    rospy.wait_for_service('mmm_processed_pointCloud')
     assemble_scans =rospy.ServiceProxy("assemble_scans", AssembleScans)
+    publish_cloud_service =rospy.ServiceProxy("mmm_processed_pointCloud", Empty)
     s = rospy.Service('mmm_scan_service', Empty, handle_scan)
     print("Ready to Scan")
     rospy.spin()

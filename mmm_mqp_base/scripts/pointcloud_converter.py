@@ -1,24 +1,39 @@
 #!/usr/bin/env python
+import imp
 import rospy
-import pcl
 from sensor_msgs.msg import PointCloud2,PointCloud
 import ros_numpy as np
-
-rospy.init_node('pc2_to_pc')
+from numpy import zeros, amax
+from std_srvs.srv import Empty
 
 pub = rospy.Publisher("/mmm_pointcloud", PointCloud, queue_size=1)
+currPointCloud = PointCloud()
 
 def callback(data):
-    print("Converting")
     pc = np.numpify(data)
-    points=np.zeros((pc.shape[0],3))
+    points = zeros((pc.shape[0],3))
     points[:,0]=pc['x']
     points[:,1]=pc['y']
     points[:,2]=pc['z']
-    p = pcl.PointCloud(np.array(points, dtype=np.float32))
-    pub.publish(p)
+    # print(points.shape)
+    # points = points[points[:,2] > 0,:]
+    # print(points.shape)
+    # print(amax(points[:,2]))
+    # print("x:" + str(len(points[:,0])) + " y:" + str(len(points[:,1])) +" z:" + str(len(points[:,2])))
+    currPointCloud = PointCloud()
+    currPointCloud.points = points
 
+def sendPointCloud(msg):
+    print("Publishing Point Cloud")
+    pub.publish(currPointCloud)
+    return []
 
-while not rospy.is_shutdown():
-    rospy.Subscriber("/camera/depth/color/points", PointCloud2, callback)
-    rospy.spin()
+def mainLoop():
+    while not rospy.is_shutdown():
+        rospy.Subscriber("/camera/depth/color/points", PointCloud2, callback)
+        rospy.spin()
+
+if __name__ == "__main__":
+    rospy.init_node('mmm_pc2_to_pc')
+    s = rospy.Service('mmm_processed_pointCloud', Empty, sendPointCloud)
+    mainLoop()
