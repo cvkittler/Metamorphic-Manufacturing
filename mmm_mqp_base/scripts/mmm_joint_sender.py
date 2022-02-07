@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from copy import deepcopy
 from os import kill
 
 from click import command
@@ -45,6 +46,9 @@ def main():
 
     frameRight = tk.Frame(master)
     frameRight.grid(column=2,row=0, sticky="nsew")
+
+    eoatFrame = tk.Frame(master)
+    eoatFrame.grid(column=3,row=0, sticky="nsew")
 
     moveit_commander.roscpp_initialize(sys.argv)
     group = moveit_commander.MoveGroupCommander(group_name)
@@ -201,6 +205,7 @@ def main():
     l6right.pack(pady=10)
     e6right.pack()
 
+    #
     masterThread = None
 
     rospy.init_node('joint_publisher_gui')
@@ -209,20 +214,21 @@ def main():
     global toggleButtonState
     toggle_btn = tk.Button(frameRight, text="Start Scan", relief="raised",command = lambda: Thread(target=scanButton).start())
     toggle_btn.pack(pady=20)
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(60)
+    masterThread = None
     while not rospy.is_shutdown():
         try:
-
-            rospy.Subscriber("joint_states", JointState, lambda msg: currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right))
+            rospy.Subscriber("joint_states", JointState, lambda msg: Thread(currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right)).start())
             #start window
-            masterThread = Thread(master.mainloop()) 
-            
+            masterThread = Thread(master.mainloop()).start()
             rate.sleep()
             print("Cycel")
         except KeyboardInterrupt:
-            print("Recived Keyboard Interrupt")
-            killPorgram(master)
+            print("Recived Keyboard Interrupt =============================================")
+            masterThread.join()
+            master.destroy()
     masterThread.join()
+    master.destroy()
 
 #for toggling point cloud combinding
 def scanButton():
@@ -253,7 +259,7 @@ def killPorgram(master):
 
 
 def validateJointInput(char, joint):
-    print("joint " + joint + " entry set to " + char)
+    # print("joint " + joint + " entry set to " + char)
     try:
         if(char is "-"):
             return True
@@ -275,7 +281,6 @@ def jointAngleButtonEnvoke(group,j1,j2,j3,j4,j5,j6):
         else:
             degrees = float(0)
     joint_goal = group.get_current_joint_values()
-    print(joint_goal)
     joint_goal[0] = float(j1) * (pi/180)
     joint_goal[1] = float(j2) * (pi/180)
     joint_goal[2] = float(j3) * (pi/180)
@@ -300,7 +305,6 @@ def targetPoseButtonEnvoke(group,X,Y,Z,rX,rY,rZ):
     pose_goal.pose.position.z = float(Z)
     group.set_pose_target(pose_goal)
     planSuccess = group.plan()
-    print(planSuccess)
     group.go(wait=False)
 
     group.stop()
@@ -326,29 +330,27 @@ def currentJointStateCallback(msg,e1,e2,e3,e4,e5,e6,group,e1right,e2right,e3righ
 
     currentPoseStateCallback(group,e1right,e2right,e3right,e4right,e5right,e6right)
 
-def currentPoseStateCallback(group,e1,e2,e3,e4,e5,e6, oldPose=Pose()):
+def currentPoseStateCallback(group,e1,e2,e3,e4,e5,e6):
     pose = group.get_current_pose().pose
-
     orientation_q = pose.orientation
     orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
     (roll, pitch, yaw) = euler_from_quaternion (orientation_list)
     roll    = roll * (180/pi)
     pitch   = pitch * (180/pi)
     yaw     = yaw * (180/pi)
-    if not posesEqual(oldPose,e1,e2,e3,e4,e5,e6):
-        e1.delete(0,100)
-        e1.insert(0,str(round(pose.position.x,4)))
-        e2.delete(0,100)
-        e2.insert(0,str(round(pose.position.y,4)))
-        e3.delete(0,100)
-        e3.insert(0,str(round(pose.position.z,4)))
-        e4.delete(0,100)
-        e4.insert(0,str(round(roll,4)))
-        e5.delete(0,100)
-        e5.insert(0,str(round(pitch,4)))
-        e6.delete(0,100)
-        e6.insert(0,str(round(yaw,4)))
-        oldPose = pose
+    e1.delete(0,100)
+    e1.insert(0,str(round(pose.position.x,4)))
+    e2.delete(0,100)
+    e2.insert(0,str(round(pose.position.y,4)))
+    e3.delete(0,100)
+    e3.insert(0,str(round(pose.position.z,4)))
+    e4.delete(0,100)
+    e4.insert(0,str(round(roll,4)))
+    e5.delete(0,100)
+    e5.insert(0,str(round(pitch,4)))
+    e6.delete(0,100)
+    e6.insert(0,str(round(yaw,4)))
+    
 
 def posesEqual(pose1,e1,e2,e3,e4,e5,e6):
     if pose1.position.x == e1.get() and pose1.position.y == e2.get() and pose1.position.z == e3.get():

@@ -1,18 +1,25 @@
 <launch>
   <!-- 3d Scanning launch file -->
+  <arg name="SLAM" default="false" />
   <arg name="rviz" default="false" />
-  
+  <arg name="sim" default="false" />
+
   <!-- start camera -->
   <include file="$(find realsense2_camera)/launch/rs_camera.launch" >
-    <arg name="color_fps"         value="15"/>
     <arg name="depth_fps"         value="15"/>
-    <arg name="depth_width"       value="1025"/>
-    <arg name="depth_height"      value="768"/>
+    <arg name="depth_width"       value="640"/>
+    <arg name="depth_height"      value="480"/>
+    <arg name="color_width"       value="640"/>
+    <arg name="color_height"      value="480"/>
+    <arg name="color_fps"         value="30"/>
     <arg name="initial_reset"     value="true" />
     <arg name="align_depth"       value="true" />
     <arg name="unite_imu_method"  value="linear_interpolation" />
-    <arg name="enable_gyro"       value="true" />
-    <arg name="enable_accel"      value="true" />
+    <arg name="enable_gyro"       value="false" />
+    <arg name="enable_accel"      value="false" />
+    <arg name="enable_color"      value="true" />
+    <arg name="enable_pointcloud" value="true"/>
+      <arg name="enable_sync"       value="true"/>
   </include>
 
   <!-- start imu filter -->
@@ -24,7 +31,8 @@
     <param name="/imu/data"     value="/rtabmap/imu" />
   </node>
 
-  <include file="$(find rtabmap_ros)/launch/rtabmap.launch" >
+  <!-- SLAM Library, doent produce high quality scans -->
+  <include file="$(find rtabmap_ros)/launch/rtabmap.launch" if="$(arg sim)">
     <arg name="rtabmap_args"      value="--delete_db_on_start --Optimizer/GravitySigma 0.3"/>
     <arg name="depth_topic"       value="/camera/aligned_depth_to_color/image_raw"/>
     <arg name="rgb_topic"         value="/camera/color/image_raw"/>
@@ -34,6 +42,16 @@
     <arg name="gen_cloud"         value="true" />
     <arg name="imu_topic"         value="/rtabmap/imu" />
     <arg name="rviz"              value="$(arg rviz)" />
-    
   </include>
+  
+  <node type="point_cloud_assembler" pkg="laser_assembler"
+        name="my_assembler">
+    <remap from="cloud" to="/mmm_pointcloud_scan"/>
+    <param name="max_clouds" type="int" value="4" />
+    <param name="fixed_frame" type="string" value="base_link" />
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="World_Camera" args="0 0 0 0 0 0.349 map camera_link 100" if="$(arg sim)"/>
+
+  <node name="mmm_mqp_base_scan_service" pkg="mmm_mqp_base" type="mmm_scan_service.py" output="screen"/>
 </launch>

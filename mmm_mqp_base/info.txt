@@ -1,14 +1,19 @@
 roslaunch abb_irb1600_6_12_moveit_config moveit_planning_execution.launch sim:=false robot_ip:=192.168.100.100
-roslaunch abb_irb1600_6_145_support robot.launch sim:=true
+roslaunch mmm_mqp_base main.launch sim:=true
 edit the src/abb_experimental/abb_irb1600_support/urdf/irb1600_6_12_macro.xacro file to make the legths right
+rosrun point_cloud_converter point_cloud_converter points2_in:=/camera/depth/color/points points_out:=/mmm_pointcloud_scan
 
 setting up:
 install ros melodic
 install ros industial
 install ros abb drivers
+install ros abb experimental
 install out code
 install ros realsense2_camera
 install ros realsense2_discription
+sudo apt install ros-melodic-pcl-ros
+sudo apt install pcl-tools
+sudo apt-get install ros-melodic-laser-assembler ros-melodic-laser-geometry ros-melodic-rqt-controller-manager ros-melodic-ros-controllers ros-melodic-gazebo-ros ros-melodic-gazebo-ros-control ros-melodic-robot-state-publisher ros-melodic-ros-comm ros-melodic-gazebo-plugins
 
 things ive had to do to get this to work
 change the arm config to the one in washburn

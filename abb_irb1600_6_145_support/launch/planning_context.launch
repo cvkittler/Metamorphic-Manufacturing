@@ -18,7 +18,7 @@
 
   <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
   <group ns="$(arg robot_description)_kinematics">
-    <rosparam command="load" file="$(find abb_irb1600_6_12_moveit_config)/config/kinematics.yaml"/>
+    <rosparam command="load" file="$(find abb_irb1600_6_145_support)/config/kinematics.yaml"/>
   </group>
 
   <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
