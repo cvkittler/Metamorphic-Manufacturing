@@ -30,19 +30,6 @@
     <param name="/imu/data_raw" value="/camera/imu" />
     <param name="/imu/data"     value="/rtabmap/imu" />
   </node>
-
-  <!-- SLAM Library, doent produce high quality scans -->
-  <include file="$(find rtabmap_ros)/launch/rtabmap.launch" if="$(arg sim)">
-    <arg name="rtabmap_args"      value="--delete_db_on_start --Optimizer/GravitySigma 0.3"/>
-    <arg name="depth_topic"       value="/camera/aligned_depth_to_color/image_raw"/>
-    <arg name="rgb_topic"         value="/camera/color/image_raw"/>
-    <arg name="camera_info_topic" value="/camera/color/camera_info"/>
-    <arg name="approx_sync"       value="false" />
-    <arg name="wait_imu_to_init"  value="false" />
-    <arg name="gen_cloud"         value="true" />
-    <arg name="imu_topic"         value="/rtabmap/imu" />
-    <arg name="rviz"              value="$(arg rviz)" />
-  </include>
   
   <node type="point_cloud_assembler" pkg="laser_assembler"
         name="my_assembler">
@@ -51,7 +38,6 @@
     <param name="fixed_frame" type="string" value="base_link" />
   </node>
 
-  <node pkg="tf" type="static_transform_publisher" name="World_Camera" args="0 0 0 0 0 0.349 map camera_link 100" if="$(arg sim)"/>
-
+  <!-- <node name="mmm_pc2_to_pc" pkg="mmm_mqp_base" type="pointcloud_converter.py" output="screen"/> -->
   <node name="mmm_mqp_base_scan_service" pkg="mmm_mqp_base" type="mmm_scan_service.py" output="screen"/>
 </launch>
