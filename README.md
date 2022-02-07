@@ -61,6 +61,7 @@ Status/Error Code  | Meaning
 3  | EOAT In Stopped State
 4  | EOAT Initializing
 5  | Test Routine in Progress
+6  | Tool offsets Set. Max Position now set to x y
 7  | Invalid command recieved
 8  | Calibration In Progress
 9  | Unknown Error
@@ -81,6 +82,7 @@ z is speed/Special Statuses. Valid range: 1.0 to 15.0
 z Status/Error Code  | Meaning
 ------------- | -------------
 -732  | Calibrate the Manipulator
+111  | set tool offsets to x y
 911  | Execute an Emergency Stop
 [any other float]  | Speed for manipulator to follow
 

@@ -31,26 +31,34 @@ bool autosetup = true; //if true will not prompt user to confirm setup
 bool Jogging = false; //Runmode. True = manual mode with command line input, false = automatic mode with ROS input
 bool testTooling = false; //Test Mode. True will run preprogrammed tests. False will go direcly to waiting for instructions
 
-//Program Variables. Dont change these.
+
+//Program Variables. Dont change the following variables
+//Error and calibration flags
 bool calibrating = false; //Robot calibration status. Disables safeties while calibrating
 bool checkCenter = false; //basically same thing as calibrating, but for center switches
 bool eStopTriggered = false; //Robto ESTOP Status
 bool volatile exceedLimits = false; //has the robot hit a limit switch
 bool recievedInstruction = false; //If robot has recieved instructions
-int dutyCycle = 127; //0-255. 
 int errorMode = 0;
+
+int dutyCycle = 127; //0-255. 
+
+//control stuff
 int speed=0; //active desired speed in mm/s
 int targetSpeed = 0; //ros input speed
 float recoveryL = 0.0, recoveryR = 0.0;
 float posL = 5.0, posR = 5.0;  //active setpoints in mm
 float targetL = 0.0, targetR = 0.0; //ros input setpoints
-float posLMax = 130.0, posRMax = 130.0;
+float posLMax = 130.0, posRMax = 130.0; //Physical Max distance the screwblock can move towards center (no tools attached)
+float offsetL = 0.0, offsetR = 0.0; //tool offsets
+float toolMaxL = 130.0, toolMaxR = 130.0; //Physical max distance the screwblock can move towards center with current tools
 
+//ros stuff
 geometry_msgs::Point32 pos_return;
 ros::Publisher chatter_pub;
 ros::Subscriber sub;
 
-enum stateMachine { Stop, initEOAT, waitForInstruction, run, recovery, state_calibrate, state_e_stop, state_invalid_command, toolingTest };
+enum stateMachine { Stop, initEOAT, waitForInstruction, run, recovery, state_calibrate, state_e_stop, state_invalid_command, set_tool_offset, toolingTest };
 stateMachine previousState = Stop, currentState = initEOAT;
 
 
@@ -278,6 +286,9 @@ void publishCurrentPos(){
 	else if(currentState == toolingTest){
 		pos_return.z = 5;
 	}
+	else if(currentState == set_tool_offset){
+		pos_return.z = 6;
+	}
 	else{
 		pos_return.z = 9;
 	}
@@ -418,6 +429,9 @@ int main(int argc, char *argv[]){
 							if(speed == 911){
 								currentState = state_e_stop;
 							}
+							else if (speed == 111){
+								currentState = set_tool_offset;
+							}
 							else if(speed == -732){
 								currentState = state_calibrate;
 							}
@@ -506,6 +520,16 @@ int main(int argc, char *argv[]){
 				
 			case state_invalid_command:
 				printf("invalid command\n");
+				publishCurrentPos();
+				currentState = waitForInstruction;
+				
+				break;
+				
+			case set_tool_offset:
+				printf("setToolOffsets\n");
+				offsetL = posL;
+				offsetR = posR;
+				
 				publishCurrentPos();
 				currentState = waitForInstruction;
 				
