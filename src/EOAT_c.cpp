@@ -22,6 +22,7 @@
 #include <sys/poll.h>
 #include <sstream>
 
+
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/Point32.h"
@@ -51,7 +52,7 @@ float posL = 5.0, posR = 5.0;  //active setpoints in mm
 float targetL = 0.0, targetR = 0.0; //ros input setpoints
 float posLMax = 130.0, posRMax = 130.0; //Physical Max distance the screwblock can move towards center (no tools attached)
 float offsetL = 0.0, offsetR = 0.0; //tool offsets
-float toolMaxL = 130.0, toolMaxR = 130.0; //Physical max distance the screwblock can move towards center with current tools
+float toolLMax = 130.0, toolRMax = 130.0; //Physical max distance the screwblock can move towards center with current tools
 
 //ros stuff
 geometry_msgs::Point32 pos_return;
@@ -89,6 +90,7 @@ void emergencyStop(){
 	printf("EMERGENCY STOP EXECUTED. KILLING PROGRAM\n");
 	raise(SIGTERM);
 }
+
 
 
 void recoverySaveData(){
@@ -287,6 +289,8 @@ void publishCurrentPos(){
 		pos_return.z = 5;
 	}
 	else if(currentState == set_tool_offset){
+		pos_return.x = toolLMax;
+		pos_return.y = toolRMax;
 		pos_return.z = 6;
 	}
 	else{
@@ -315,6 +319,7 @@ void rosSetPosition(const geometry_msgs::Point32::ConstPtr& msg){
 	}
 	
 }
+
 
 int main(int argc, char *argv[]){
 	struct pollfd mypoll = { STDIN_FILENO, POLLIN|POLLPRI };
@@ -426,6 +431,8 @@ int main(int argc, char *argv[]){
 				else{
 					if(recievedInstruction){
 						recievedInstruction = false;
+						posL = toolLMax - posL; //convert directions for dist from center to dist from outside
+						posR = toolRMax - posR; //convert directions for dist from center to dist from outside
 							if(speed == 911){
 								currentState = state_e_stop;
 							}
@@ -529,6 +536,10 @@ int main(int argc, char *argv[]){
 				printf("setToolOffsets\n");
 				offsetL = posL;
 				offsetR = posR;
+				
+				toolLMax = posLMax - offsetL;
+				toolRMax = posRMax - offsetR;
+				
 				
 				publishCurrentPos();
 				currentState = waitForInstruction;
