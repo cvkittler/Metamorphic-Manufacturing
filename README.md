@@ -142,4 +142,5 @@ Right Outer Limit Switch  | 10
 - [ ] setup remote roscore procedure and stuffs
 - [x] Figure out the automatic configuration of PosLMax and PosRMax
 - [ ] Fix info being published so it actually publishes while moving (if possible)
-- [ ] tool offsets
+- [x] tool offsets
+- [ ] fix position publishing to give dist from center, not dist from outside

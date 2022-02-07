@@ -361,8 +361,10 @@ int main(int argc, char *argv[]){
 				if(autosetup){
 					eoat.calibrateTooling();
 					eoat.calibrateCenters();
-					posLMax = eoat.left.maxPosition;
-					posRMax = eoat.right.maxPosition;
+					posLMax = eoat.left.maxPosition - 4;
+					posRMax = eoat.right.maxPosition - 4;
+					toolLMax = posLMax;
+					toolRMax = posRMax;
 					publishCurrentPos();
 					printf("max positions set at %f and %f\n",posLMax,posRMax);
 				}
@@ -374,6 +376,8 @@ int main(int argc, char *argv[]){
 						eoat.calibrateCenters();
 						posLMax = eoat.left.maxPosition;
 						posRMax = eoat.right.maxPosition;
+						toolLMax = posLMax;
+						toolRMax = posRMax;
 						publishCurrentPos();
 					}
 					else{
@@ -431,8 +435,6 @@ int main(int argc, char *argv[]){
 				else{
 					if(recievedInstruction){
 						recievedInstruction = false;
-						posL = toolLMax - posL; //convert directions for dist from center to dist from outside
-						posR = toolRMax - posR; //convert directions for dist from center to dist from outside
 							if(speed == 911){
 								currentState = state_e_stop;
 							}
@@ -442,11 +444,17 @@ int main(int argc, char *argv[]){
 							else if(speed == -732){
 								currentState = state_calibrate;
 							}
-							else if(speed<=0||speed>15||posL<0||posR<0||posL>posLMax||posR>posRMax){
-								currentState = state_invalid_command;
-							}
 							else{
-								currentState = run;
+								printf("input %f ",posL);
+								posL = toolLMax - posL; //convert directions for dist from center to dist from outside
+								posR = toolRMax - posR; //convert directions for dist from center to dist from outside
+								printf("abs max %f tool max %f set pos %f\n",posLMax,toolLMax, posL);
+								if(speed<=0||speed>15||posL<0||posR<0||posL>posLMax||posR>posRMax){
+									currentState = state_invalid_command;
+								}
+								else{
+									currentState = run;
+								}
 							}
 						
 					}
@@ -539,7 +547,6 @@ int main(int argc, char *argv[]){
 				
 				toolLMax = posLMax - offsetL;
 				toolRMax = posRMax - offsetR;
-				
 				
 				publishCurrentPos();
 				currentState = waitForInstruction;
