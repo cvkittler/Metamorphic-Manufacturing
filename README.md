@@ -11,7 +11,7 @@ Clone THIS BRANCH such that the package is in ~/catkin_ws/src/ (ie you get ~/cat
 
 
 ## Code
-Edit the runmodes variables in the main file (~/catkin_ws/src/mmmqp_eoat/src/EOAT_c.cpp) to run the program how you desire
+Edit the runmodes variables in the file mmmqp_eoat/src/EOAT_c.cpp to run the program how you desire
 
 - autosetup: 
   - Determines if the EOAT requires user confirmation prior to initializing. 
@@ -34,7 +34,7 @@ Edit the runmodes variables in the main file (~/catkin_ws/src/mmmqp_eoat/src/EOA
 sudo killall pigpiod
 roscore
 ```
-*note dont run roscore if its being run elsewhere* will update once this is figured out
+*note: dont run roscore if its being run elsewhere* will update once this is figured out
 
 ###### In Terminal 2:
 ```
@@ -42,17 +42,19 @@ sudo su
 source catkin_ws/devel/setup.bash
 rosrun mmmqp_eoat mmmqp_eoat_node
 ```
+*note: Running the ROS Node as root is necessary since the code and Pigpio library make use of system interrupts, which require elevated permisisons and ros doesnt work with sudo [command]. Be careful with what you do in this terminal window for obvious reasons...
 
 
-
-## Information being published to the central code
+## Information being published to the high level program
 Topic: "mmm_eoat_position"
 Message: Point32
-```
-x is left manipulator position in mm
-y is right manipulator position in mm
-z is status/error code
-```
+
+float  |  use
+----  |  -----
+x  |  left manipulator position (mm)
+y  |  right manipulator position (mm)
+z  |  status/error code
+
 Status/Error Code  | Meaning
 ------------- | -------------
 0  | Waiting For Instruction
@@ -74,17 +76,21 @@ View this topic by opening a terminal and using the command "rostopic echo mmm_e
 ## Commands being issued to EOAT
 Topic: "mmm_eoat_command"
 Message: Point32
-```
-x is left manipulator position in mm. Valid range: 0.01 to Maximum Closed value (calculated by code. Approx 130mm)
-y is right manipulator position in mm. Valid range: 0.01 to Maximum Closed value (calculated by code. Approx 130mm)
-z is speed/Special Statuses. Valid range: 1.0 to 15.0
-```
-z Status/Error Code  | Meaning
+
+float  |  valid range  |  use
+------------- | -------------| -------------
+x  |  [0,max*)  | left manipulator position** (mm)
+y  |  [0,max*)  | right manipulator position** (mm)
+z  |  [1.0,15.0]u[-732]u[911]  | speed/command
+
+*max is automatically calculated by the calibration process. Approximately 133mm from fully open
+
+z command  | Meaning
 ------------- | -------------
 -732  | Calibrate the Manipulator
 111  | set tool offsets to x y
 911  | Execute an Emergency Stop
-[any other float]  | Speed for manipulator to follow
+[valid float]  | Speed for manipulator to follow
 
 *note, if any special codes are present in the z, the x and y entries do not matter provided they are valid for the data type*
 
@@ -120,7 +126,7 @@ Right Outer Limit Switch  | 10
 
 ![Raspberry Pi 4 Pinout](https://www.etechnophiles.com/wp-content/uploads/2021/01/R-Pi-4-GPIO-Pinout.jpg)
 
-# Random Crap
+# Random Stuff
 ## Geany Build commands
 ```
   compile: g++ -Wall -c "%f"
@@ -132,8 +138,8 @@ Right Outer Limit Switch  | 10
  
  # TODO
 - [ ] Launch Files etc...
-- [ ] setup automatic launch on raspi turn on
+- [ ] setup automatic launch on raspi boot
 - [ ] setup remote roscore procedure and stuffs
-- [ ] Figure out the automatic configuration of PosLMax and PosRMax
+- [x] Figure out the automatic configuration of PosLMax and PosRMax
 - [ ] Fix info being published so it actually publishes while moving (if possible)
 - [ ] tool offsets
