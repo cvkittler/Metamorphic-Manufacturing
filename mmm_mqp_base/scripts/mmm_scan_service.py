@@ -9,40 +9,35 @@ import moveit_commander
 import sys
 from math import pi
 from tf.transformations import quaternion_from_euler
-from sensor_msgs.msg import PointCloud2
+from sensor_msgs.msg import PointCloud
 from laser_assembler.srv import AssembleScans
 
 # initilize global variables
 group = None
 group_name = "manipulator"
 assemble_scans = None
-pub = None
+pub = rospy.Publisher("/mmm_full_scan", PointCloud, queue_size=1)
 publish_cloud_service = None
 
 # points to scan
 points = [[0.2,      -0.85,  0.85,   90.,    70,     0.],#top
-          [0.573,   -0.85,  0.747,  90,     90.,    0.],#right 1
-          [0.79,    -0.85,  0.59,   90,     110.,   0.],#right 2
-          [0.573,   -0.85,  0.747,  90,     90.,    0.],#right 1
-          [0.2,      -0.85,  0.85,   90.,    70,     0.],#top
-          [-0.173,  -0.85,  0.747,  90,     50.,    0.],#left 1
-          [-0.39,   -0.85,  0.59,   90,     30.,    0.],#left 2
-          [-0.173,  -0.85,  0.747,  90,     50.,    0.]]#left 1
+          [0.79,    -0.85,  0.59,   90,     110.,   0.],#right
+          [0.2,    -1.3,  0.7,   165,     50.,   75.],#out
+          [-0.39,   -0.85,  0.59,   90,     30.,    0.],#left
+          [0.0,   -0.6,  0.7,   160,     50.,    -120.]]#in
 
 # service request handler
 def handle_scan(req):
     global pub, points, publish_cloud_service
     print("Request Recived")
     # j is froward backwards
-    for j in range(-1,1,1):
-        for i in range(len(points)):
-            target_pose = deepcopy( points[i])
-            target_pose[1] += (j * 0.15)
-            moveToPoint(target_pose)
-            print("Reached Pose " + str(i + 1))
-            sleep(2)
-            publish_cloud_service()
-            sleep(2)
+    for i in range(len(points)):
+        target_pose = deepcopy( points[i])
+        moveToPoint(target_pose)
+        print("Reached Pose " + str(i + 1))
+        sleep(2)
+        publish_cloud_service()
+        sleep(2)
     resp = assemble_scans(rospy.Time(0,0), rospy.get_rostime())
     pub.publish(resp.cloud)
     moveToPoint([0., -0.85, 0.85, -180., 0, -110.])
@@ -73,7 +68,7 @@ def moveToPoint(pose):
 def scan_routine():
     rospy.init_node('mmm_scan_service')
     global pub, assemble_scans, publish_cloud_service
-    pub = rospy.Publisher("/mmm_full_scan", PointCloud2, queue_size=1)
+    pub = rospy.Publisher("/mmm_full_scan", PointCloud, queue_size=1)
     rospy.wait_for_service('assemble_scans')
     rospy.wait_for_service('mmm_processed_pointCloud')
     assemble_scans =rospy.ServiceProxy("assemble_scans", AssembleScans)

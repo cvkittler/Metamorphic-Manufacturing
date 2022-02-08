@@ -33,8 +33,8 @@
   
   <node type="point_cloud_assembler" pkg="laser_assembler"
         name="my_assembler">
-    <remap from="cloud" to="/mmm_pointcloud_scan"/>
-    <param name="max_clouds" type="int" value="4" />
+    <remap from="cloud" to="/mmm_pointcloud"/>
+    <param name="max_clouds" type="int" value="5" />
     <param name="fixed_frame" type="string" value="base_link" />
   </node>
 

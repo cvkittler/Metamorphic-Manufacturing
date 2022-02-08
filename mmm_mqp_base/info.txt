@@ -22,3 +22,7 @@ robot ip is 192.168.100.100
 pi ip is 192.168.100.105
 master pc this one usally is 192.168.100.104
 use chrony to sync the pi and this pc to the same clock
+
+Errors that can happen and how to fix them:
+- on the flex pendant if the robot doesnt move after clicking start make sure you are in the production windown and then release the deadmans switch and then press it again and restart the program without restarting the Program pointer
+- If there is ever a "Socket Error" on the flex pendant to fix this you click ABB button (top left) -> Restart -> Warm Start

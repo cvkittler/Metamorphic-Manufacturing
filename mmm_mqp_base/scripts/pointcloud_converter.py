@@ -8,7 +8,7 @@ import ros_numpy as np
 from numpy import zeros
 from std_srvs.srv import Empty
 
-pub = rospy.Publisher("/mmm_pointcloud", PointCloud, queue_size=1)
+pub = rospy.Publisher("/mmm_pointcloud", PointCloud2, queue_size=1)
 savedPoints = None
 def callback(data):
     global savedPoints
@@ -17,7 +17,7 @@ def callback(data):
     points[:,0]=pc['x']
     points[:,1]=pc['y']
     points[:,2]=pc['z']
-    savedPoints = points
+    savedPoints = data
 
 def sendPointCloud(msg):
     global savedPoints
@@ -29,11 +29,11 @@ def sendPointCloud(msg):
     #make point cloud
     currPointCloud = PointCloud()
     currPointCloud.header = header
-    for i in range(0,len(localPoints[:,0]), 50):
-        currPointCloud.points.append(Point32(localPoints[i,0],localPoints[i,1],localPoints[i,2]))
-        currPointCloud.channels.append(ChannelFloat32())
-    print("Publishing Point Cloud" + str(len(currPointCloud.points)))
-    pub.publish(currPointCloud)
+    # for i in range(0,len(localPoints[:,0]), 50):
+    #     currPointCloud.points.append(Point32(localPoints[i,0],localPoints[i,1],localPoints[i,2]))
+    #     currPointCloud.channels.append(ChannelFloat32())
+    # print("Publishing Point Cloud" + str(len(currPointCloud.points)))
+    pub.publish(localPoints)
     return []
 
 def mainLoop():
