@@ -21,6 +21,7 @@
 #include <iostream>
 #include <sys/poll.h>
 #include <sstream>
+#include <signal.h>
 
 
 #include "ros/ros.h"
@@ -61,6 +62,18 @@ ros::Subscriber sub;
 
 enum stateMachine { Stop, initEOAT, waitForInstruction, run, recovery, state_calibrate, state_e_stop, state_invalid_command, set_tool_offset, toolingTest };
 stateMachine previousState = Stop, currentState = initEOAT;
+
+
+void mySigintHandler(int sig)
+{
+    // Do custom action, like publishing stop msg
+    printf("exit on ctrl c\n");
+    gpioWrite(EN_L,0);
+	gpioWrite(EN_R,0);
+	gpioTerminate();
+	ros::shutdown();
+	raise(SIGTERM);
+}
 
 
 /**
@@ -322,18 +335,19 @@ void rosSetPosition(const geometry_msgs::Point32::ConstPtr& msg){
 
 
 int main(int argc, char *argv[]){
-	struct pollfd mypoll = { STDIN_FILENO, POLLIN|POLLPRI };
-
-	
-	ros::init(argc, argv, "mmm_eoat");
+	ros::init(argc, argv, "mmm_eoat", ros::init_options::NoSigintHandler);
 	ros::NodeHandle n;
+	ros::spinOnce();
+	
+	struct pollfd mypoll = { STDIN_FILENO, POLLIN|POLLPRI };
+	
 	chatter_pub = n.advertise<geometry_msgs::Point32>("mmm_eoat_position",500);
 	sub = n.subscribe("mmm_eoat_command",10,rosSetPosition);
 	ros::Rate loop_rate(10);
 	
 	gpioSetTimerFunc(0, 1000, publishCurrentPos);					
 	
-	while(true){
+	while(ros::ok()){
 		switch(currentState){
 			case Stop:
 				printf("State = Stop");
@@ -356,6 +370,8 @@ int main(int argc, char *argv[]){
 						exit(1);
 					}	
 				}
+				
+				signal(SIGINT, mySigintHandler);
 				
 				//calibrate tooling
 				if(autosetup){
@@ -611,5 +627,7 @@ int main(int argc, char *argv[]){
 				break;
 			
 		}
-	} 
+	}
+	gpioWrite(EN_L,0);
+	gpioWrite(EN_R,0); 
 }
