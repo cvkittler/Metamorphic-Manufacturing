@@ -465,10 +465,10 @@ int main(int argc, char *argv[]){
 				else{
 					if(recievedInstruction){
 						recievedInstruction = false;
-							if(speed == 911){
+							if(speed == -911){
 								currentState = state_e_stop;
 							}
-							else if (speed == 111){
+							else if (speed == -111){
 								currentState = set_tool_offset;
 							}
 							else if(speed == -732){
