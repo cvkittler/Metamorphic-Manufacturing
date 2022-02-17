@@ -1,0 +1,14 @@
+Info on the cpp package for the Metamorphic Manufactuing WPI MQP
+
+Referances Used:
+    http://wiki.ros.org/pcl/Tutorials
+    http://wiki.ros.org/pcl/Overview
+    https://github.com/methylDragon/pcl-ros-tutorial/blob/master/PCL%20Reference%20with%20ROS.md
+
+
+Packages Installed:
+
+
+Problems and Solutions:
+    the pcd files are not found
+        cd into this directory (mmm_cpp_base)

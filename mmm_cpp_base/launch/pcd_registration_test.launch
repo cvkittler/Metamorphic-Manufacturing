@@ -1,0 +1,7 @@
+<launch>
+
+  <node pkg="tf" type="static_transform_publisher" name="static_tf" args="0 0 0 0 0 2.35 map base_link 100"/>
+  <!-- <node pkg="pcl_ros" type="pcd_to_pointcloud" name="pcd_publisher_a" args="$(find mmm_cpp_base)/pointClouds/test_pcd1.pcd 1"/> -->
+  <node pkg="pcl_ros" type="pcd_to_pointcloud" name="pcd_publisher_b" args="$(find mmm_cpp_base)/pointClouds/test_pcd2.pcd 1"/>
+  <!--   pcl_ros pcdpointcloud pointClouds/test_pcd.pcd 1 -->
+</launch>

@@ -1,28 +1,38 @@
-roslaunch abb_irb1600_6_12_moveit_config moveit_planning_execution.launch sim:=false robot_ip:=192.168.100.100
-roslaunch mmm_mqp_base main.launch sim:=true
-edit the src/abb_experimental/abb_irb1600_support/urdf/irb1600_6_12_macro.xacro file to make the legths right
-rosrun point_cloud_converter point_cloud_converter points2_in:=/camera/depth/color/points points_out:=/mmm_pointcloud_scan
+Launch commands
+    Abb arm hooked up with the specifications below
+        roslaunch mmm_mqp_base main.launch sim:=false
+    Abb not connected
+        roslaunch mmm_mqp_base main.launch sim:=true
+    Test to see if the realsense camera is working
+        $ 
+    Testing point cloud coversion with pcl package
+        rosrun point_cloud_converter point_cloud_converter points2_in:=/camera/depth/color/points points_out:=/mmm_pointcloud_scan
 
-setting up:
-install ros melodic
-install ros industial
-install ros abb drivers
-install ros abb experimental
-install out code
-install ros realsense2_camera
-install ros realsense2_discription
-sudo apt install ros-melodic-pcl-ros
-sudo apt install pcl-tools
-sudo apt-get install ros-melodic-laser-assembler ros-melodic-laser-geometry ros-melodic-rqt-controller-manager ros-melodic-ros-controllers ros-melodic-gazebo-ros ros-melodic-gazebo-ros-control ros-melodic-robot-state-publisher ros-melodic-ros-comm ros-melodic-gazebo-plugins
 
-things ive had to do to get this to work
-change the arm config to the one in washburn
-in the robot_interface_download_irb1600_6_145 make sure J23_coupled is false
-robot ip is 192.168.100.100
-pi ip is 192.168.100.105
-master pc this one usally is 192.168.100.104
-use chrony to sync the pi and this pc to the same clock
+Things that I habe installed while trying to make this work:
+    NEEDED ros melodic
+    NEEDED ros industial
+    NEEDED ros abb drivers
+    NEEDED ros abb experimental
+    NEEDED ros realsense2_camera
+    NEEDED ros realsense2_discription
+
+    install out code
+    sudo apt install ros-melodic-pcl-ros
+    sudo apt install pcl-tools
+    sudo apt-get install ros-melodic-laser-assembler ros-melodic-laser-geometry ros-melodic-rqt-controller-manager ros-melodic-ros-controllers ros-melodic-gazebo-ros ros-melodic-gazebo-ros-control ros-melodic-robot-state-publisher ros-melodic-ros-comm ros-melodic-gazebo-plugins
+
+Connected Devices expected IPv4 Addresses:
+    NAME            IPv4 Adress
+    Robot           192.168.100.100
+    Main Computer   192.168.100.104
+    Rpi             192.168.100.105
 
 Errors that can happen and how to fix them:
 - on the flex pendant if the robot doesnt move after clicking start make sure you are in the production windown and then release the deadmans switch and then press it again and restart the program without restarting the Program pointer
 - If there is ever a "Socket Error" on the flex pendant to fix this you click ABB button (top left) -> Restart -> Warm Start
+- if arm not the right size (no model so the joints shount line up)
+    first check for the abb_irb1600_6_145_support package and look at /urdf/irb1600_6_12_macro.xacro 
+    edit the src/abb_experimental/abb_irb1600_support/urdf/irb1600_6_12_macro.xacro file to make the legths right
+- The path planning isn't working real robot isnt in the right spot
+    in the robot_interface_download_irb1600_6_145 make sure J23_coupled is false

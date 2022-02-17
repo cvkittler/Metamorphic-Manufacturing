@@ -9,7 +9,7 @@ import rospy
 import Tkinter as tk
 from std_msgs.msg import Bool
 from sensor_msgs.msg import JointState
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Point32
 import moveit_commander
 import sys
 from math import pi
@@ -26,6 +26,7 @@ j6Angle = 5
 group_name = "manipulator"
 altTop = False
 toggleButtonState = True
+eoatPub = None
 
 def main():
     master = tk.Tk()
@@ -149,22 +150,22 @@ def main():
     l5center = tk.Label(framecenter,text="Joint 5")
     l6center = tk.Label(framecenter,text="Joint 6")
 
-    e1center = tk.Entry(framecenter)
+    e1center = tk.Label(framecenter, borderwidth=1, relief="solid", width=25)
     l1center.pack(pady=10)
     e1center.pack()
-    e2center = tk.Entry(framecenter)
+    e2center = tk.Label(framecenter, borderwidth=1, relief="solid", width=25)
     l2center.pack(pady=10)
     e2center.pack()
-    e3center = tk.Entry(framecenter)
+    e3center = tk.Label(framecenter, borderwidth=1, relief="solid", width=25)
     l3center.pack(pady=10)
     e3center.pack()
-    e4center = tk.Entry(framecenter)
+    e4center = tk.Label(framecenter, borderwidth=1, relief="solid", width=25)
     l4center.pack(pady=10)
     e4center.pack()
-    e5center = tk.Entry(framecenter)
+    e5center = tk.Label(framecenter, borderwidth=1, relief="solid", width=25)
     l5center.pack(pady=10)
     e5center.pack()
-    e6center = tk.Entry(framecenter)
+    e6center = tk.Label(framecenter, borderwidth=1, relief="solid", width=25)
     l6center.pack(pady=10)
     e6center.pack()
     
@@ -186,43 +187,110 @@ def main():
     l5right = tk.Label(frameRight,text="Rotation Y")
     l6right = tk.Label(frameRight,text="Rotation Z")
 
-    e1right = tk.Entry(frameRight)
+    e1right = tk.Label(frameRight, borderwidth=1, relief="solid", width=25)
     l1right.pack(pady=10)
     e1right.pack()
-    e2right = tk.Entry(frameRight)
+    e2right = tk.Label(frameRight, borderwidth=1, relief="solid", width=25)
     l2right.pack(pady=10)
     e2right.pack()
-    e3right = tk.Entry(frameRight)
+    e3right = tk.Label(frameRight, borderwidth=1, relief="solid", width=25)
     l3right.pack(pady=10)
     e3right.pack()
-    e4right = tk.Entry(frameRight)
+    e4right = tk.Label(frameRight, borderwidth=1, relief="solid", width=25)
     l4right.pack(pady=10)
     e4right.pack()
-    e5right = tk.Entry(frameRight)
+    e5right = tk.Label(frameRight, borderwidth=1, relief="solid", width=25)
     l5right.pack(pady=10)
     e5right.pack()
-    e6right = tk.Entry(frameRight)
+    e6right = tk.Label(frameRight, borderwidth=1, relief="solid", width=25)
     l6right.pack(pady=10)
     e6right.pack()
 
-    #
+    #end of arm tooling display
+    #frame center start
+    eoatTitel = tk.Label(eoatFrame,text="End of Arm Tooling")
+    eoatTitel.pack(pady = (10,20),padx = (10,10))
+    eoatTitel.config(font=("Courier", 15))
+    # current pose read out
+    eoatLeftFingerLabel =  tk.Label(eoatFrame,text="Left (mm from Center)").pack(pady=1)
+    eoatLeftFingerValue = tk.Label(eoatFrame, text="No pose recived", borderwidth=1, relief="solid", width=25)
+    eoatLeftFingerValue.pack(pady=1)
+    eoatRightFingerLabel =  tk.Label(eoatFrame,text="Right (mm from Center)").pack(pady=1)
+    eoatRightFingerValue = tk.Label(eoatFrame, text="No pose recived", borderwidth=1, relief="solid", width=25)
+    eoatRightFingerValue.pack(pady=1)
+    # set current pose
+    eoatLeftFingerInLabel =  tk.Label(eoatFrame,text="Left Dist From Center").pack(pady=1)
+    eoatLeftPoseIn = tk.Entry(eoatFrame, width=25)
+    eoatLeftPoseIn.pack(pady=1)
+    eoatRightFingerInLabel =  tk.Label(eoatFrame,text="Right Dist From Center").pack(pady=1)
+    eoatRightPoseIn = tk.Entry(eoatFrame, width=25)
+    eoatRightPoseIn.pack(pady=1)
+    eoatSpeedInLabel =  tk.Label(eoatFrame,text="Speed").pack(pady=1)
+    eoatSpeedIn = tk.Entry(eoatFrame, width=25)
+    eoatSpeedIn.pack(pady=1)
+    eoatSendPose = tk.Button(eoatFrame, 
+                        text="Send Target Pose", 
+                        command= lambda:  eoatPublisher(float(eoatLeftPoseIn.get()), float(eoatRightPoseIn.get()), float(eoatSpeedIn.get())), 
+                        width=15
+                        )
+    eoatSendPose.pack(pady=1)
+    # set tool offset
+    eoatToolOffsetLable =  tk.Label(eoatFrame,text="Currnet Tool Offset value").pack(pady=1)
+    eoatToolOffsetValue = tk.Label(eoatFrame, text="0", borderwidth=1, relief="solid", width=25)
+    eoatToolOffsetValue.pack(pady=1)
+    eoatRightFingerInLabel =  tk.Label(eoatFrame,text="Current Offset (mm)").pack(pady=1)
+    eoatRightPoseIn = tk.Entry(eoatFrame, width=25, justify="center")
+    eoatRightPoseIn.pack(pady=1)
+    eoatSetOffset = tk.Button(eoatFrame, 
+                        text="Set Tool offset", 
+                        command= lambda: eoatPublisher(float(eoatRightPoseIn.get()), float(eoatRightPoseIn.get()), -111), 
+                        width=15
+                        )
+    eoatSetOffset.pack(pady=1)
+
+    # Status Readout
+    eoatStatusReadout =  tk.Label(eoatFrame,text="EOAT Status: none recived", 
+                                            borderwidth=1, 
+                                            relief="solid", 
+                                            width=25, 
+                                            wraplength=200, 
+                                            justify="center")
+    eoatStatusReadout.pack(pady=1)
+
+    # calabrate
+    eoatCalabrate = tk.Button(eoatFrame, 
+                        text="Calabrate", 
+                        command= lambda: eoatPublisher(0.0, 0.0, -732), 
+                        width=15
+                        )
+    eoatCalabrate.pack(pady=1)
+    # Estop
+    eoatEstop = tk.Button(eoatFrame, 
+                        text="ESTOP", 
+                        command= lambda: eoatPublisher(0.0, 0.0, -911), 
+                        width=15
+                        )
+    eoatEstop.pack(pady=1)
+    #end eoat frame
     masterThread = None
 
     rospy.init_node('joint_publisher_gui')
     pub = rospy.Publisher("pointcloudOnOff", Bool, queue_size=10)
     
-    global toggleButtonState
+    global toggleButtonState, eoatPub
     toggle_btn = tk.Button(frameRight, text="Start Scan", relief="raised",command = lambda: Thread(target=scanButton).start())
     toggle_btn.pack(pady=20)
     rate = rospy.Rate(60)
     masterThread = None
     while not rospy.is_shutdown():
         try:
+            eoatPub = rospy.Publisher("mmm_eoat_command", Point32)
             rospy.Subscriber("joint_states", JointState, lambda msg: Thread(currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right)).start())
+            rospy.Subscriber("mmm_eoat_position", Point32, lambda msg: Thread(eoatCallback(msg,eoatLeftFingerValue,eoatRightFingerValue,eoatStatusReadout,eoatCalabrate,eoatSetOffset,eoatSendPose)).start())
+            
             #start window
             masterThread = Thread(master.mainloop()).start()
             rate.sleep()
-            print("Cycel")
         except KeyboardInterrupt:
             print("Recived Keyboard Interrupt =============================================")
             masterThread.join()
@@ -230,6 +298,51 @@ def main():
     masterThread.join()
     master.destroy()
 
+# function for calabrating the end of arm tooling
+def eoatPublisher(_x, _y, _z):
+    global eoatPub
+    point = Point32()
+    point.x = _x
+    point.y = _y
+    point.z = _z
+    eoatPub.publish(point)
+
+# end of arm tooling callback function
+def eoatCallback(msg, leftLabel,rightLabel,statusLabel,calabrateButton,offsetButton,sendPoseButton):
+    leftLabel.config(text=str(msg.x))
+    rightLabel.config(text=str(msg.y))
+    state = int(msg.z)
+    if(state == 0):
+        statusLabel.config(text = "Waiting For Instruction")
+        calabrateButton['state'] = tk.NORMAL
+        offsetButton['state'] = tk.NORMAL
+        sendPoseButton['state'] = tk.NORMAL
+    else:
+        #if the eoat isn't ready for a command disable the buttons
+        calabrateButton['state'] = tk.DISABLED
+        offsetButton['state'] = tk.DISABLED
+        sendPoseButton['state'] = tk.DISABLED
+    if(state == 1):
+        statusLabel.config(text = "Instruction Execution in Progress")
+    elif(state == 2):
+        statusLabel.config(text = "A Manipulator has exceeded its limits")
+    elif(state == 3):
+        statusLabel.config(text = "EOAT In Stopped State")
+    elif(state == 4):
+        statusLabel.config(text = "EOAT Initializing")
+    elif(state == 5):
+        statusLabel.config(text = "Test Routine in Progress")
+    elif(state == 6):
+        statusLabel.config(text = "Tool offsets Set. Max Position now set to x y")
+    elif(state == 7):
+        statusLabel.config(text = "Invalid command recieved")
+    elif(state == 8):
+        statusLabel.config(text = "Calibration In Progress")
+    elif(state == 9):
+        statusLabel.config(text = "Unknown Error")
+    elif(state == 911):
+        statusLabel.config(text = "Emergency Stop")
+    
 #for toggling point cloud combinding
 def scanButton():
     rospy.wait_for_service('mmm_scan_service')
@@ -315,18 +428,12 @@ def currentJointStateCallback(msg,e1,e2,e3,e4,e5,e6,group,e1right,e2right,e3righ
     for rad in positions:
         newPos.append(round( rad * (180/pi), 3 ))
     positions = newPos
-    e1.delete(0,100)
-    e1.insert(0,str(positions[0]))
-    e2.delete(0,100)
-    e2.insert(0,str(positions[1]))
-    e3.delete(0,100)
-    e3.insert(0,str(positions[2]))
-    e4.delete(0,100)
-    e4.insert(0,str(positions[3]))
-    e5.delete(0,100)
-    e5.insert(0,str(positions[4]))
-    e6.delete(0,100)
-    e6.insert(0,str(positions[5]))
+    e1.config(text= str(positions[0]))
+    e2.config(text= str(positions[1]))
+    e3.config(text= str(positions[2]))
+    e4.config(text= str(positions[3]))
+    e5.config(text= str(positions[4]))
+    e6.config(text= str(positions[5]))
 
     currentPoseStateCallback(group,e1right,e2right,e3right,e4right,e5right,e6right)
 
@@ -338,18 +445,12 @@ def currentPoseStateCallback(group,e1,e2,e3,e4,e5,e6):
     roll    = roll * (180/pi)
     pitch   = pitch * (180/pi)
     yaw     = yaw * (180/pi)
-    e1.delete(0,100)
-    e1.insert(0,str(round(pose.position.x,4)))
-    e2.delete(0,100)
-    e2.insert(0,str(round(pose.position.y,4)))
-    e3.delete(0,100)
-    e3.insert(0,str(round(pose.position.z,4)))
-    e4.delete(0,100)
-    e4.insert(0,str(round(roll,4)))
-    e5.delete(0,100)
-    e5.insert(0,str(round(pitch,4)))
-    e6.delete(0,100)
-    e6.insert(0,str(round(yaw,4)))
+    e1.config(text=str(round(pose.position.x,4)))
+    e2.config(text=str(round(pose.position.y,4)))
+    e3.config(text=str(round(pose.position.z,4)))
+    e4.config(text=str(round(roll,4)))
+    e5.config(text=str(round(pitch,4)))
+    e6.config(text=str(round(yaw,4)))
     
 
 def posesEqual(pose1,e1,e2,e3,e4,e5,e6):
