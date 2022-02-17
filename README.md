@@ -34,16 +34,18 @@ Edit the runmodes variables in the file mmmqp_eoat/src/EOAT_c.cpp to run the pro
 sudo killall pigpiod
 roscore
 ```
-*note: dont run roscore if its being run elsewhere* will update once this is figured out
+*note: dont run roscore if its being run elsewhere*
 
 ###### In Terminal 2:
 ```
 sudo su
 source catkin_ws/devel/setup.bash
+export ROS_IP={raspi ip}.1.2**
+export ROS_MASTER_URI=http://{remote computer name}:11311**
 rosrun mmmqp_eoat mmmqp_eoat_node
 ```
 *note: Running the ROS Node as root is necessary since the code and Pigpio library make use of system interrupts, which require elevated permisisons and ros doesnt work with sudo [command]. Be careful with what you do in this terminal window for obvious reasons...
-
+** note: only use these if running roscore elsewhere
 
 ## Information being published to the high level program
 Topic: "mmm_eoat_position"
@@ -120,9 +122,9 @@ EN_R  | 14
 DIR_R  | 15
 STEP_R  | 18
 Left Inner Limit Switch  | 17
-Left Outer Limit Switch  | 27
+Left Outer Limit Switch  | 4
 Right Inner Limit Switch  | 22
-Right Outer Limit Switch  | 10
+Right Outer Limit Switch  | 27
 
 ![Raspberry Pi 4 Pinout](https://www.etechnophiles.com/wp-content/uploads/2021/01/R-Pi-4-GPIO-Pinout.jpg)
 
@@ -139,7 +141,7 @@ Right Outer Limit Switch  | 10
  # TODO
 - [ ] Launch Files etc...
 - [ ] setup automatic launch on raspi boot
-- [ ] setup remote roscore procedure and stuffs
+- [x] setup remote roscore procedure and stuffs
 - [x] Figure out the automatic configuration of PosLMax and PosRMax
 - [ ] Fix info being published so it actually publishes while moving (if possible)
 - [x] tool offsets

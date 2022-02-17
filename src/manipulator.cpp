@@ -64,6 +64,7 @@ void Manipulator::setEnable(bool run){
  * @para speed : int : speed of manipulator in mm/s
  */ 
 void Manipulator::moveManipulator(float position, int speed){
+	printf("error %d\n",errorMode);
 	int distMultiplier;
 	
 	//if desired position more closed than current position, set direction closed
@@ -179,7 +180,7 @@ void Manipulator::calibrateManipulator(){
 	printf("Sensor Tripped\n");
 	
 	//move the manipulator in 10mm, and set this as zero (so that we dont regularly e stop the thing)
-	this->moveManipulator(10,10);
+	this->recoverManipulator(10,10);
 	this->currentPosition = 0;
 	usleep(100);
 	calibrating = false; //reinable auto estop

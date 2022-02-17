@@ -18,15 +18,16 @@
 #define STEP_R 18
 
 #define S_L_close 17
-#define S_L_open 27
+#define S_L_open 4
 #define S_R_close 22
-#define S_R_open 10
+#define S_R_open 27
 
 #define ES_INPUT 9
 
-extern bool calibrating;
-extern bool checkCenter;
+extern bool volatile calibrating;
+extern bool volatile checkCenter;
 extern bool volatile exceedLimits;
+extern int volatile errorMode;
 
 class Manipulator {
     public:

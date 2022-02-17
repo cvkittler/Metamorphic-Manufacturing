@@ -36,12 +36,12 @@ bool testTooling = false; //Test Mode. True will run preprogrammed tests. False 
 
 //Program Variables. Dont change the following variables
 //Error and calibration flags
-bool calibrating = false; //Robot calibration status. Disables safeties while calibrating
-bool checkCenter = false; //basically same thing as calibrating, but for center switches
+bool volatile calibrating = false; //Robot calibration status. Disables safeties while calibrating
+bool volatile checkCenter = false; //basically same thing as calibrating, but for center switches
 bool eStopTriggered = false; //Robto ESTOP Status
 bool volatile exceedLimits = false; //has the robot hit a limit switch
 bool recievedInstruction = false; //If robot has recieved instructions
-int errorMode = 0;
+int volatile errorMode = 0;
 
 int dutyCycle = 127; //0-255. 
 
@@ -118,7 +118,7 @@ void recoverySaveData(){
  */
 void leftCloseDetected(int pin, int level, uint32_t tick){
 	if(!checkCenter){
-		if(errorMode ==0){
+		if(errorMode == 0){
 			printf("Left manipulator exceeded maximum bounds (too close to center)\n");
 			errorMode = -1;
 			exceedLimits = true;
@@ -132,7 +132,7 @@ void leftCloseDetected(int pin, int level, uint32_t tick){
  */
 void rightCloseDetected(int pin, int level, uint32_t tick){
 	if(!checkCenter){
-		if(errorMode ==0){
+		if(errorMode == 0){
 			printf("Right manipulator exceeded maximum bounds (too close to center)\n");
 			errorMode = 1;
 			exceedLimits = true;
@@ -145,8 +145,9 @@ void rightCloseDetected(int pin, int level, uint32_t tick){
  * Left manipulator exceeds operating bounds. Triggers E Stop if not actively calibrating
  */
 void leftOpenDetected(int pin, int level, uint32_t tick){
+	printf("ping\n");
 	if(!calibrating){
-		if(errorMode ==0){
+		if(errorMode == 0){
 			printf("Left manipulator exceeded maximum bounds (too far from center)\n");
 			errorMode = -2;
 			exceedLimits = true;
@@ -159,8 +160,9 @@ void leftOpenDetected(int pin, int level, uint32_t tick){
  * Right manipulator exceeds operating bounds. Triggers E Stop if not actively calibrating
  */
 void rightOpenDetected(int pin, int level, uint32_t tick){
+	printf("pong\n");
 	if(!calibrating){
-		if(errorMode ==0){
+		if(errorMode == 0){
 			printf("Right manipulator exceeded maximum bounds (too far from center)\n");
 			errorMode = 2;
 			exceedLimits = true;
@@ -375,7 +377,19 @@ int main(int argc, char *argv[]){
 				
 				//calibrate tooling
 				if(autosetup){
+					printf("error %d eL %d calib %d center %d\n",errorMode, exceedLimits, calibrating, checkCenter);
+					eoat.left.currentPosition = 0.0;
+					eoat.right.currentPosition	= 0.0;
+					exceedLimits = false;
+					calibrating = true;
+					errorMode = 0;
 					eoat.calibrateTooling();
+					printf("error %d eL %d calib %d center %d\n",errorMode, exceedLimits, calibrating, checkCenter);
+					exceedLimits = false;
+					checkCenter = true;
+					errorMode = 0;
+					printf("error %d eL %d calib %d center %d\n",errorMode, exceedLimits, calibrating, checkCenter);
+					std::cin.get();
 					eoat.calibrateCenters();
 					posLMax = eoat.left.maxPosition - 4;
 					posRMax = eoat.right.maxPosition - 4;
@@ -630,4 +644,5 @@ int main(int argc, char *argv[]){
 	}
 	gpioWrite(EN_L,0);
 	gpioWrite(EN_R,0); 
+	std::cin.get();
 }
