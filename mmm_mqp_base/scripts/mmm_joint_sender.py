@@ -24,9 +24,10 @@ toggleButtonState = True
 eoatPub = None
 
 def main():
+    rospy.init_node('joint_publisher_gui')
     mainTk = tk.Tk()
     mainTk.title("MMM Simple Sender")
-    mainTk.protocol("WM_DELETE_WINDOW", lambda: killPorgram(mainTk))
+    # mainTk.protocol("WM_DELETE_WINDOW", lambda: killPorgram(mainTk))
 
     valid = mainTk.register(validateJointInput)
 
@@ -51,8 +52,38 @@ def main():
 
     # pose Controller 
 
-    button1=tk.Button(mainTk, text="button1")
-    button1.grid(column=1,row=1)
+    joystickFrame=tk.Frame(mainTk)
+    joystickFrame.grid(column=1,row=2)
+
+    joystickStepSizeFrame=tk.Frame(mainTk)
+    joystickStepSizeFrame.grid(column=1,row=1)
+
+    joystickStepSizeLable = tk.Label(joystickStepSizeFrame,text="Move Distance (m)")
+    joystickStepSizeEntry = tk.Entry(joystickStepSizeFrame, validate="key", validatecommand=(valid, '%P', 1))
+    joystickStepSizeLable.pack()
+    joystickStepSizeEntry.pack()
+    joystickStepSizeEntry.insert(-1,"0.01")
+
+    joyStickHome = tk.Button(joystickFrame, text=u"\u2302", command= lambda: jointAngleButtonEnvoke(group,0,0,0,0,0,0))
+    joyStickHome.grid(column=1,row=1)
+
+    joyStickUp = tk.Button(joystickFrame, text=u"\u2197", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), 'Z'))
+    joyStickUp.grid(column=2,row=0)
+
+    joyStickDown = tk.Button(joystickFrame, text=u"\u2199", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), '-Z'))
+    joyStickDown.grid(column=0,row=2)
+
+    joyStickForward = tk.Button(joystickFrame, text=u"\u2191", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), 'X'))
+    joyStickForward.grid(column=1,row=0)
+
+    joyStickBackward = tk.Button(joystickFrame, text=u"\u2193", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), '-X'))
+    joyStickBackward.grid(column=1,row=2)
+
+    joyStickRight = tk.Button(joystickFrame, text=u"\u2192", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), 'Y'))
+    joyStickRight.grid(column=2,row=1)
+
+    joyStickLeft = tk.Button(joystickFrame, text=u"\u2190", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), '-Y'))
+    joyStickLeft.grid(column=0,row=1)
 
     #frame left
     titleLabelLeft = tk.Label(jointSpacePoseFrame,text="Send Joint Targets")
@@ -220,14 +251,17 @@ def main():
     eoatRightFingerValue.pack(pady=1)
     # set current pose
     eoatLeftFingerInLabel =  tk.Label(eoatFrame,text="Left Dist From Center").pack(pady=1)
-    eoatLeftPoseIn = tk.Entry(eoatFrame, width=25)
+    eoatLeftPoseIn = tk.Entry(eoatFrame, width=25, validate="key", validatecommand=(valid, '%P', 1))
     eoatLeftPoseIn.pack(pady=1)
+    eoatLeftPoseIn.insert(-1,"0")
     eoatRightFingerInLabel =  tk.Label(eoatFrame,text="Right Dist From Center").pack(pady=1)
-    eoatRightPoseIn = tk.Entry(eoatFrame, width=25)
+    eoatRightPoseIn = tk.Entry(eoatFrame, width=25, validate="key", validatecommand=(valid, '%P', 1))
     eoatRightPoseIn.pack(pady=1)
+    eoatRightPoseIn.insert(-1,"0")
     eoatSpeedInLabel =  tk.Label(eoatFrame,text="Speed").pack(pady=1)
-    eoatSpeedIn = tk.Entry(eoatFrame, width=25)
+    eoatSpeedIn = tk.Entry(eoatFrame, width=25, validate="key", validatecommand=(valid, '%P', 1))
     eoatSpeedIn.pack(pady=1)
+    eoatSpeedIn.insert(-1,"0")
     eoatSendPose = tk.Button(eoatFrame, 
                         text="Send Target Pose", 
                         command= lambda:  eoatPublisher(float(eoatLeftPoseIn.get()), float(eoatRightPoseIn.get()), float(eoatSpeedIn.get())), 
@@ -238,12 +272,13 @@ def main():
     eoatToolOffsetLable =  tk.Label(eoatFrame,text="Currnet Tool Offset value").pack(pady=1)
     eoatToolOffsetValue = tk.Label(eoatFrame, text="0", borderwidth=1, relief="solid", width=25)
     eoatToolOffsetValue.pack(pady=1)
-    eoatRightFingerInLabel =  tk.Label(eoatFrame,text="Current Offset (mm)").pack(pady=1)
-    eoatRightPoseIn = tk.Entry(eoatFrame, width=25, justify="center")
-    eoatRightPoseIn.pack(pady=1)
+    eoatToolOffsetInLabel =  tk.Label(eoatFrame,text="Current Offset (mm)").pack(pady=1)
+    eoatToolOffsetIn = tk.Entry(eoatFrame, width=25, justify="center", validate="key", validatecommand=(valid, '%P', 1))
+    eoatToolOffsetIn.pack(pady=1)
+    eoatToolOffsetIn.insert(-1,"0")
     eoatSetOffset = tk.Button(eoatFrame, 
                         text="Set Tool offset", 
-                        command= lambda: eoatPublisher(float(eoatRightPoseIn.get()), float(eoatRightPoseIn.get()), -111), 
+                        command= lambda: eoatPublisher(float(eoatToolOffsetIn.get()), float(eoatToolOffsetIn.get()), -111), 
                         width=15
                         )
     eoatSetOffset.pack(pady=1)
@@ -274,7 +309,6 @@ def main():
     #end eoat frame
     mainTkThread = None
 
-    rospy.init_node('joint_publisher_gui')
     pub = rospy.Publisher("pointcloudOnOff", Bool, queue_size=10)
     
     global toggleButtonState, eoatPub
@@ -284,7 +318,7 @@ def main():
     mainTkThread = None
     while not rospy.is_shutdown():
         try:
-            eoatPub = rospy.Publisher("mmm_eoat_command", Point32)
+            eoatPub = rospy.Publisher("mmm_eoat_command", Point32, queue_size=1)
             rospy.Subscriber("joint_states", JointState, lambda msg: Thread(currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right)).start())
             rospy.Subscriber("mmm_eoat_position", Point32, lambda msg: Thread(eoatCallback(msg,eoatLeftFingerValue,eoatRightFingerValue,eoatStatusReadout,eoatCalabrate,eoatSetOffset,eoatSendPose)).start())
             
@@ -421,6 +455,30 @@ def targetPoseButtonEnvoke(group,X,Y,Z,rX,rY,rZ):
     group.go(wait=False)
 
     group.stop()
+
+def stepCurrentPose(group,deltaString,direction):
+    print("Target Pose Steop Submitted")
+    delta = float(deltaString)
+    pose_goal = group.get_current_pose()
+    if (direction.upper() == "X"):
+        pose_goal.pose.position.x += float(delta)
+    elif (direction.upper() == "Y"):
+        pose_goal.pose.position.y += float(delta)
+    elif (direction.upper() == "Z"):
+        pose_goal.pose.position.z += float(delta)
+    elif (direction.upper() == "-X"):
+        pose_goal.pose.position.x -= float(delta)
+    elif (direction.upper() == "-Y"):
+        pose_goal.pose.position.y -= float(delta)
+    elif (direction.upper() == "-Z"):
+        pose_goal.pose.position.z -= float(delta)
+
+    group.set_pose_target(pose_goal)
+    planSuccess = group.plan()
+    group.go(wait=False)
+
+    group.stop()
+    # pass
 
 def currentJointStateCallback(msg,e1,e2,e3,e4,e5,e6,group,e1right,e2right,e3right,e4right,e5right,e6right):
     positions = msg.position
