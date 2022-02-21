@@ -24,13 +24,21 @@ toggleButtonState = True
 eoatPub = None
 
 def main():
+    #setup ros
     rospy.init_node('joint_publisher_gui')
+    rate = rospy.Rate(60)
+    # initilize move it planner
+    moveit_commander.roscpp_initialize(sys.argv)
+    group = moveit_commander.MoveGroupCommander(group_name)
+
+    #setup Tkinter (calling it tk from her on out)
     mainTk = tk.Tk()
     mainTk.title("MMM Simple Sender")
-    # mainTk.protocol("WM_DELETE_WINDOW", lambda: killPorgram(mainTk))
 
+    #make tk text entry validator
     valid = mainTk.register(validateJointInput)
 
+    # create tk frames to orginize buttons and readouts
     jointSpacePoseFrame = tk.Frame(mainTk)
     jointSpacePoseFrame.grid(column=0,row=0, sticky="nsew")
 
@@ -47,11 +55,7 @@ def main():
     eoatFrame = tk.Frame(mainTk)
     eoatFrame.grid(column=3,row=0, sticky="nsew")
 
-    moveit_commander.roscpp_initialize(sys.argv)
-    group = moveit_commander.MoveGroupCommander(group_name)
-
-    # pose Controller 
-
+    # pose Controller frame
     joystickFrame=tk.Frame(mainTk)
     joystickFrame.grid(column=1,row=2)
 
@@ -307,30 +311,25 @@ def main():
                         )
     eoatEstop.pack(pady=1)
     #end eoat frame
-    mainTkThread = None
 
-    pub = rospy.Publisher("pointcloudOnOff", Bool, queue_size=10)
-    
+    # start work peice scan button
     global toggleButtonState, eoatPub
     toggle_btn = tk.Button(curWorkspacePoseFrame, text="Start Scan", relief="raised",command = lambda: Thread(target=scanButton).start())
     toggle_btn.pack(pady=20)
-    rate = rospy.Rate(60)
-    mainTkThread = None
-    while not rospy.is_shutdown():
-        try:
-            eoatPub = rospy.Publisher("mmm_eoat_command", Point32, queue_size=1)
-            rospy.Subscriber("joint_states", JointState, lambda msg: Thread(currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right)).start())
-            rospy.Subscriber("mmm_eoat_position", Point32, lambda msg: Thread(eoatCallback(msg,eoatLeftFingerValue,eoatRightFingerValue,eoatStatusReadout,eoatCalabrate,eoatSetOffset,eoatSendPose)).start())
-            
-            #start window
-            mainTkThread = Thread(mainTk.mainloop()).start()
-            rate.sleep()
-        except KeyboardInterrupt:
-            print("Recived Keyboard Interrupt =============================================")
-            mainTkThread.join()
-            mainTk.destroy()
-    mainTkThread.join()
-    mainTk.destroy()
+    
+    #make ros publisher(s)
+    eoatPub = rospy.Publisher("mmm_eoat_command", Point32, queue_size=1)
+    pub = rospy.Publisher("pointcloudOnOff", Bool, queue_size=10)
+    
+    #start window
+    #prepare a way to cleanly shutdown the window
+    rospy.on_shutdown(lambda: mainTk.quit())
+    #preapre a way to start the ros subscribers after the blocking code has been run
+    mainTk.after(110,lambda:rospy.Subscriber("joint_states", JointState, lambda msg: Thread(currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right)).start()))
+    mainTk.after(120,lambda:rospy.Subscriber("mmm_eoat_position", Point32, lambda msg: Thread(eoatCallback(msg,eoatLeftFingerValue,eoatRightFingerValue,eoatStatusReadout,eoatCalabrate,eoatSetOffset,eoatSendPose)).start()))
+    # BLOCKING CODE
+    # start the tk gui window
+    mainTk.mainloop()
 
 # function for calabrating the end of arm tooling
 def eoatPublisher(_x, _y, _z):

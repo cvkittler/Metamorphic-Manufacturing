@@ -36,3 +36,5 @@ Errors that can happen and how to fix them:
     edit the src/abb_experimental/abb_irb1600_support/urdf/irb1600_6_12_macro.xacro file to make the legths right
 - The path planning isn't working real robot isnt in the right spot
     in the robot_interface_download_irb1600_6_145 make sure J23_coupled is false
+- The joint sender code would not close with ros
+    make sure the tk.mainloop() code (which is blocking) is called last and there is a way to kill the gui (e.i. rospy.on_shutdown(lambda:tk.quit())) 
