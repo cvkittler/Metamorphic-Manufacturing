@@ -47,7 +47,7 @@ rosrun mmmqp_eoat mmmqp_eoat_node
 *note: Running the ROS Node as root is necessary since the code and Pigpio library make use of system interrupts, which require elevated permisisons and ros doesnt work with sudo [command]. Be careful with what you do in this terminal window for obvious reasons...
 ** note: only use these if running roscore elsewhere
 
-## Information being published to the high level program
+## Status updates published from EOAT
 Topic: "mmm_eoat_position"
 Message: Point32
 
@@ -90,8 +90,8 @@ z  |  [1.0,15.0]u[-732]u[911]  | speed/command
 z command  | Meaning
 ------------- | -------------
 -732  | Calibrate the Manipulator
-111  | set tool offsets to x y
-911  | Execute an Emergency Stop
+-111  | set tool offsets to x y
+-911  | Execute an Emergency Stop
 [valid float]  | Speed for manipulator to follow
 
 *note, if any special codes are present in the z, the x and y entries do not matter provided they are valid for the data type*
