@@ -79,7 +79,7 @@ void Tooling::moveAManipulator(float position, int speed, bool side){
  */ 
 void Tooling::moveManipulators(float positionL, float positionR, int speed){
 	int distMultiplierL, distMultiplierR;
-	printf("error mode %d\n",errorMode);
+	//printf("error mode %d\n",errorMode);
 	//if desired position more closed than current position, set direction closed
 	if(positionL > this->left.currentPosition){
 		distMultiplierL = 1;

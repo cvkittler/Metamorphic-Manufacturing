@@ -549,6 +549,8 @@ int main(int argc, char *argv[]){
 					exceedLimits = false;
 					errorMode = 0;
 					eoat.calibrateTooling();
+					targetL = 0;
+					targetR = 0;
 					currentState = waitForInstruction;
 				}
 			
