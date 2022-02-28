@@ -30,7 +30,6 @@
 
 //Runmodes: You can change these
 bool autosetup = true; //if true will not prompt user to confirm setup
-bool Jogging = false; //Runmode. True = manual mode with command line input, false = automatic mode with ROS input
 bool testTooling = false; //Test Mode. True will run preprogrammed tests. False will go direcly to waiting for instructions
 
 
@@ -435,31 +434,15 @@ int main(int argc, char *argv[]){
 				printf("State = wait for instruction\n");
 				publishCurrentPos();
 				
-				//Manual Jogging Mode. Interacts with the Terminal
-				if(Jogging){
-					printf("left:%f right:%f\n",eoat.left.currentPosition, eoat.right.currentPosition);
-					printf("Manual jogging Mode. Awaiting Command Line Input.\n");
-					printf("enter left pos, right pos speed (float float int) speed -732 triggers a recalibration\n");
-					while(!recievedInstruction&&!exceedLimits){
-						//Checks for instruction, if no instruction in 1s exit to continue processing errors
-						if(poll(&mypoll,1,1000)){
-							std::cin >> posL >> posR >> speed;
-							recievedInstruction = true;
-						}					
-					}	
+				if(recievedInstruction){
+					posL = targetL;
+					posR = targetR;
+					speed = targetSpeed;
+				}
+				else{
+					sleep(1); //basically a do nothing so that program continues processing errors if no instruction recieved
 				}
 				
-				//Automatic Mode. Interacts with ROS Commands from mmm_eoat_command topic
-				else{
-					if(recievedInstruction){
-						posL = targetL;
-						posR = targetR;
-						speed = targetSpeed;
-					}
-					else{
-						sleep(1); //basically a do nothing so that program continues processing errors if no instruction recieved
-					}
-				}
 				
 				//Checks that no manipulator exceeded limits somehow...
 				if(exceedLimits){
@@ -515,45 +498,16 @@ int main(int argc, char *argv[]){
 				publishCurrentPos();
 				printf("State = recovery\n");
 				
-				if(Jogging){
-					printf("Exit Recovery? (y/n)\n");
-						if(yesorno()){
-							printf("Are you sure? (y/n)\n");
-							if(yesorno()){
-								eoat.left.setEnable(true);
-								eoat.right.setEnable(true);
-								eoat.recoverTooling(errorMode);
-								exceedLimits = false;
-								errorMode = 0;
-								
-								printf("recalibrate? (y/n)\n");
-								if(yesorno()){
-									eoat.calibrateTooling();
-								}
-								currentState = waitForInstruction;
-							}
-							else{
-								printf("User declined to recover .Emergency Stop.\n");
-								emergencyStop();
-							}
-						}
-						else{
-							printf("User declined to recover .Emergency Stop.\n");
-							emergencyStop();
-						}
-					}
-				else{
-					eoat.left.setEnable(true);
-					eoat.right.setEnable(true);
-					eoat.recoverTooling(errorMode);
-					exceedLimits = false;
-					errorMode = 0;
-					eoat.calibrateTooling();
-					targetL = 0;
-					targetR = 0;
-					currentState = waitForInstruction;
-				}
-			
+				eoat.left.setEnable(true);
+				eoat.right.setEnable(true);
+				eoat.recoverTooling(errorMode);
+				exceedLimits = false;
+				errorMode = 0;
+				eoat.calibrateTooling();
+				targetL = 0;
+				targetR = 0;
+				currentState = waitForInstruction;
+				
 				break;
 			
 			case state_calibrate:

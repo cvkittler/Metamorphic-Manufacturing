@@ -64,7 +64,7 @@ void Manipulator::setEnable(bool run){
  * @para speed : int : speed of manipulator in mm/s
  */ 
 void Manipulator::moveManipulator(float position, int speed){
-	printf("error %d\n",errorMode);
+	//printf("error %d\n",errorMode);
 	int distMultiplier;
 	
 	//if desired position more closed than current position, set direction closed
