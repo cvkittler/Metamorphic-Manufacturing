@@ -118,7 +118,8 @@ void recoverySaveData(){
  */
 void leftCloseDetected(int pin, int level, uint32_t tick){
 	if(!checkCenter){
-		if(errorMode == 0){
+		usleep(100);
+		if(errorMode == 0&&gpioRead(pin)){
 			printf("Left manipulator exceeded maximum bounds (too close to center)\n");
 			errorMode = -1;
 			exceedLimits = true;
@@ -132,7 +133,8 @@ void leftCloseDetected(int pin, int level, uint32_t tick){
  */
 void rightCloseDetected(int pin, int level, uint32_t tick){
 	if(!checkCenter){
-		if(errorMode == 0){
+		usleep(100);
+		if(errorMode == 0&&gpioRead(pin)){
 			printf("Right manipulator exceeded maximum bounds (too close to center)\n");
 			errorMode = 1;
 			exceedLimits = true;
@@ -147,22 +149,25 @@ void rightCloseDetected(int pin, int level, uint32_t tick){
 void leftOpenDetected(int pin, int level, uint32_t tick){
 	printf("ping\n");
 	if(!calibrating){
-		if(errorMode == 0){
+		usleep(150);
+		if(errorMode == 0&&gpioRead(pin)){
 			printf("Left manipulator exceeded maximum bounds (too far from center)\n");
 			errorMode = -2;
 			exceedLimits = true;
 			recoverySaveData();
 		}
+		std::cin.get();
 	}
+	
 }
 
 /**
  * Right manipulator exceeds operating bounds. Triggers E Stop if not actively calibrating
  */
 void rightOpenDetected(int pin, int level, uint32_t tick){
-	printf("pong\n");
 	if(!calibrating){
-		if(errorMode == 0){
+		usleep(100);
+		if(errorMode == 0&&gpioRead(pin)){
 			printf("Right manipulator exceeded maximum bounds (too far from center)\n");
 			errorMode = 2;
 			exceedLimits = true;
@@ -389,7 +394,7 @@ int main(int argc, char *argv[]){
 					checkCenter = true;
 					errorMode = 0;
 					printf("error %d eL %d calib %d center %d\n",errorMode, exceedLimits, calibrating, checkCenter);
-					std::cin.get();
+					//std::cin.get();
 					eoat.calibrateCenters();
 					posLMax = eoat.left.maxPosition - 4;
 					posRMax = eoat.right.maxPosition - 4;
