@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  moveit_ros_planning_interface
+  moveit_ros_move_group
 )
 
 ## System dependencies are found with CMake's conventions
@@ -219,3 +221,7 @@ target_link_libraries (mmm_cpp_base_reg ${PCL_LIBRARIES})
 add_executable(mmm_cpp_base_test src/cpp_pub_test.cpp)
 target_link_libraries(mmm_cpp_base_test ${catkin_LIBRARIES})
 target_link_libraries (mmm_cpp_base_test ${PCL_LIBRARIES})
+
+add_executable(mmm_make_walls src/mmm_robot_workspace_generator.cpp)
+target_link_libraries(mmm_make_walls ${catkin_LIBRARIES})
+target_link_libraries (mmm_make_walls ${moveit_LIBRARIES})

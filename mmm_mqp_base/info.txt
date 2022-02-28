@@ -38,3 +38,12 @@ Errors that can happen and how to fix them:
     in the robot_interface_download_irb1600_6_145 make sure J23_coupled is false
 - The joint sender code would not close with ros
     make sure the tk.mainloop() code (which is blocking) is called last and there is a way to kill the gui (e.i. rospy.on_shutdown(lambda:tk.quit())) 
+- The robot was ending exacution of trajectorys because they were taking too long
+    in trajectory_exacution.launch.xml in the abb_irb1600_6_145_support package changed (1.2 -> 4) <param name="trajectory_execution/allowed_execution_duration_scaling" value="4.0"/>
+- The robot was going into a pose where the arm would crush the clay
+    Changed the joint limits in the file src/abb_irb1600_6_145_support/urdf/irb1600_6_145_macro.xacro
+
+
+Obscure Referances:
+Kinamadic solver README (for some reason this was hard to find)
+    https://bitbucket.org/traclabs/trac_ik/src/9ef45fd67ede62d389c410720ad3915bb8c1dc8f/trac_ik_lib/README.md

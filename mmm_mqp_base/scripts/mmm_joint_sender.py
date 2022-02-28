@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from copy import deepcopy
 import rospy
 
 import Tkinter as tk
@@ -55,6 +56,9 @@ def main():
     eoatFrame = tk.Frame(mainTk)
     eoatFrame.grid(column=3,row=0, sticky="nsew")
 
+    switchSendingFrame = tk.Frame(mainTk)
+    switchSendingFrame.grid(column=0,row=1, sticky="nsew")
+
     # pose Controller frame
     joystickFrame=tk.Frame(mainTk)
     joystickFrame.grid(column=1,row=2)
@@ -63,7 +67,7 @@ def main():
     joystickStepSizeFrame.grid(column=1,row=1)
 
     joystickStepSizeLable = tk.Label(joystickStepSizeFrame,text="Move Distance (m)")
-    joystickStepSizeEntry = tk.Entry(joystickStepSizeFrame, validate="key", validatecommand=(valid, '%P', 1))
+    joystickStepSizeEntry = tk.Entry(joystickStepSizeFrame, validate="key", validatecommand=(valid, '%P', 1), justify="center")
     joystickStepSizeLable.pack()
     joystickStepSizeEntry.pack()
     joystickStepSizeEntry.insert(-1,"0.01")
@@ -75,7 +79,7 @@ def main():
     joyStickUp.grid(column=2,row=0)
 
     joyStickDown = tk.Button(joystickFrame, text=u"\u2199", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), '-Z'))
-    joyStickDown.grid(column=0,row=2)
+    joyStickDown.grid(column=0,row=2,pady=5)
 
     joyStickForward = tk.Button(joystickFrame, text=u"\u2191", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), 'X'))
     joyStickForward.grid(column=1,row=0)
@@ -83,13 +87,49 @@ def main():
     joyStickBackward = tk.Button(joystickFrame, text=u"\u2193", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), '-X'))
     joyStickBackward.grid(column=1,row=2)
 
-    joyStickRight = tk.Button(joystickFrame, text=u"\u2192", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), 'Y'))
+    joyStickRight = tk.Button(joystickFrame, text=u"\u2192", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), '-Y'))
     joyStickRight.grid(column=2,row=1)
 
-    joyStickLeft = tk.Button(joystickFrame, text=u"\u2190", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), '-Y'))
+    joyStickLeft = tk.Button(joystickFrame, text=u"\u2190", command= lambda:stepCurrentPose(group, joystickStepSizeEntry.get(), 'Y'))
     joyStickLeft.grid(column=0,row=1)
 
+    # Rotation Controller frame
+    rotationFrame=tk.Frame(mainTk)
+    rotationFrame.grid(column=2,row=2)
+
+    rotationStepSizeFrame=tk.Frame(mainTk)
+    rotationStepSizeFrame.grid(column=2,row=1)
+
+    rotationStepSizeLable = tk.Label(rotationStepSizeFrame,text="Rotation Step (degrees)")
+    rotationStepSizeEntry = tk.Entry(rotationStepSizeFrame, validate="key", validatecommand=(valid, '%P', 1), justify="center")
+    rotationStepSizeLable.pack()
+    rotationStepSizeEntry.pack()
+    rotationStepSizeEntry.insert(-1,"1.0")
+
+    rotationStickHome = tk.Button(rotationFrame, text=u"\u2302", command= lambda: jointAngleButtonEnvoke(group,0,0,0,0,0,0))
+    rotationStickHome.grid(column=1,row=1)
+
+    rotationStickUp = tk.Button(rotationFrame, text=u"\u21B0", command= lambda:stepCurrentRotation(group, rotationStepSizeEntry.get(), 'Roll'))
+    rotationStickUp.grid(column=2,row=0)
+
+    rotationStickDown = tk.Button(rotationFrame, text=u"\u21B3", command= lambda:stepCurrentRotation(group, rotationStepSizeEntry.get(), '-Roll'))
+    rotationStickDown.grid(column=0,row=2)
+
+    rotationStickForward = tk.Button(rotationFrame, text=u"\u293A", command= lambda:stepCurrentRotation(group, rotationStepSizeEntry.get(), 'Pitch'))
+    rotationStickForward.grid(column=1,row=0)
+
+    rotationStickBackward = tk.Button(rotationFrame, text=u"\u293B", command= lambda:stepCurrentRotation(group, rotationStepSizeEntry.get(), '-Pitch'))
+    rotationStickBackward.grid(column=1,row=2)
+
+    rotationStickRight = tk.Button(rotationFrame, text=u"\u2938", command= lambda:stepCurrentRotation(group, rotationStepSizeEntry.get(), 'Yaw'))
+    rotationStickRight.grid(column=2,row=1)
+
+    rotationStickLeft = tk.Button(rotationFrame, text=u"\u2939", command= lambda:stepCurrentRotation(group, rotationStepSizeEntry.get(), '-Yaw'))
+    rotationStickLeft.grid(column=0,row=1)
+
     #frame left
+    moveit_commander.roscpp_initialize(sys.argv)
+    group = moveit_commander.MoveGroupCommander(group_name)
     titleLabelLeft = tk.Label(jointSpacePoseFrame,text="Send Joint Targets")
     titleLabelLeft.pack(pady = (10,20),padx = (10,10))
     titleLabelLeft.config(font=("Courier", 15))
@@ -101,27 +141,27 @@ def main():
     l5 = tk.Label(jointSpacePoseFrame,text="Joint 5")
     l6 = tk.Label(jointSpacePoseFrame,text="Joint 6")
 
-    e1 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 1))
+    e1 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 1), justify="center")
     l1.pack(pady=10)
     e1.pack()
     e1.insert(-1,"0")
-    e2 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 2))
+    e2 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 2), justify="center")
     l2.pack(pady=10)
     e2.pack()
     e2.insert(-1,"0")
-    e3 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 3))
+    e3 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 3), justify="center")
     l3.pack(pady=10)
     e3.pack()
     e3.insert(-1,"0")
-    e4 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 4))
+    e4 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 4), justify="center")
     l4.pack(pady=10)
     e4.pack()
     e4.insert(-1,"0")
-    e5 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 5))
+    e5 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 5), justify="center")
     l5.pack(pady=10)
     e5.pack()
     e5.insert(-1,"0")
-    e6 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 6))
+    e6 = tk.Entry(jointSpacePoseFrame, validate="key", validatecommand=(valid, '%P', 6), justify="center")
     l6.pack(pady=10)
     e6.pack()
     e6.insert(-1,"0")
@@ -142,27 +182,27 @@ def main():
     l4alt = tk.Label(workSpacePoseFrame,text="Rotation X")
     l5alt = tk.Label(workSpacePoseFrame,text="Rotation Y")
     l6alt = tk.Label(workSpacePoseFrame,text="Rotation Z")
-    e1alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "X"))
+    e1alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "X"), justify="center")
     l1alt.pack(pady=10)
     e1alt.pack()
     e1alt.insert(-1,"0.815")
-    e2alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "Y"))
+    e2alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "Y"), justify="center")
     l2alt.pack(pady=10)
     e2alt.pack()
     e2alt.insert(-1,"0")
-    e3alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "Z"))
+    e3alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "Z"), justify="center")
     l3alt.pack(pady=10)
     e3alt.pack()
     e3alt.insert(-1,"1.185")
-    e4alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "rX"))
+    e4alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "rX"), justify="center")
     l4alt.pack(pady=10)
     e4alt.pack()
     e4alt.insert(-1,"0")
-    e5alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "rY"))
+    e5alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "rY"), justify="center")
     l5alt.pack(pady=10)
     e5alt.pack()
     e5alt.insert(-1,"90")
-    e6alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "rZ"))
+    e6alt = tk.Entry(workSpacePoseFrame, validate="key", validatecommand=(valid, '%P', "rZ"), justify="center")
     l6alt.pack(pady=10)
     e6alt.pack()
     e6alt.insert(-1,"0")
@@ -203,12 +243,6 @@ def main():
     e6center = tk.Label(curJointAnglesFrame, borderwidth=1, relief="solid", width=25)
     l6center.pack(pady=10)
     e6center.pack()
-    
-    jButtoncenter = tk.Button(curJointAnglesFrame, 
-                        text="Switch Goal to Work Space", 
-                        command= lambda: frameToggle(workSpacePoseFrame,jointSpacePoseFrame, jButtoncenter)
-                        )
-    jButtoncenter.pack(pady=20)
 
     #frame right start
     titleLabelright = tk.Label(curWorkspacePoseFrame,text="Current End Effector Pose")
@@ -255,15 +289,15 @@ def main():
     eoatRightFingerValue.pack(pady=1)
     # set current pose
     eoatLeftFingerInLabel =  tk.Label(eoatFrame,text="Left Dist From Center").pack(pady=1)
-    eoatLeftPoseIn = tk.Entry(eoatFrame, width=25, validate="key", validatecommand=(valid, '%P', 1))
+    eoatLeftPoseIn = tk.Entry(eoatFrame, width=25, validate="key", validatecommand=(valid, '%P', 1), justify="center")
     eoatLeftPoseIn.pack(pady=1)
     eoatLeftPoseIn.insert(-1,"0")
     eoatRightFingerInLabel =  tk.Label(eoatFrame,text="Right Dist From Center").pack(pady=1)
-    eoatRightPoseIn = tk.Entry(eoatFrame, width=25, validate="key", validatecommand=(valid, '%P', 1))
+    eoatRightPoseIn = tk.Entry(eoatFrame, width=25, validate="key", validatecommand=(valid, '%P', 1), justify="center")
     eoatRightPoseIn.pack(pady=1)
     eoatRightPoseIn.insert(-1,"0")
     eoatSpeedInLabel =  tk.Label(eoatFrame,text="Speed").pack(pady=1)
-    eoatSpeedIn = tk.Entry(eoatFrame, width=25, validate="key", validatecommand=(valid, '%P', 1))
+    eoatSpeedIn = tk.Entry(eoatFrame, width=25, validate="key", validatecommand=(valid, '%P', 1), justify="center")
     eoatSpeedIn.pack(pady=1)
     eoatSpeedIn.insert(-1,"0")
     eoatSendPose = tk.Button(eoatFrame, 
@@ -312,10 +346,17 @@ def main():
     eoatEstop.pack(pady=1)
     #end eoat frame
 
+    #adding misc. buttons
+    jButtoncenter = tk.Button(switchSendingFrame, 
+                        text="Switch Goal to Work Space", 
+                        command= lambda: frameToggle(workSpacePoseFrame,jointSpacePoseFrame, jButtoncenter)
+                        )
+    jButtoncenter.pack(pady=5)
+
     # start work peice scan button
     global toggleButtonState, eoatPub
-    toggle_btn = tk.Button(curWorkspacePoseFrame, text="Start Scan", relief="raised",command = lambda: Thread(target=scanButton).start())
-    toggle_btn.pack(pady=20)
+    toggle_btn = tk.Button(switchSendingFrame, text="Start Scan", relief="raised",command = lambda: Thread(target=scanButton).start())
+    toggle_btn.pack(pady=5)
     
     #make ros publisher(s)
     eoatPub = rospy.Publisher("mmm_eoat_command", Point32, queue_size=1)
@@ -405,9 +446,9 @@ def killPorgram(mainTk):
 
 
 def validateJointInput(char, joint):
-    # print("joint " + joint + " entry set to " + char)
-    try:
-        if(char is "-"):
+    #char is the new incoming charicter 
+    try: # try and make the char a float and if that fails its proably not a number so dont let it change
+        if(char is "-" or "."):
             return True
         if len(char) > 0:
             float(char)
@@ -415,17 +456,16 @@ def validateJointInput(char, joint):
     except Exception:
         return False
 
-
-    robot = moveit_commander.RobotCommander()
-    scene = moveit_commander.PlanningSceneInterface()
 def jointAngleButtonEnvoke(group,j1,j2,j3,j4,j5,j6):
     print("Joint Angles Submitted")
     group.clear_pose_targets()
+    #convert the given degrees to rads
     for degrees in (j1,j2,j3,j4,j5,j6):
         if degrees:
             degrees = (float(degrees) * 180)/pi
         else:
             degrees = float(0)
+    #set the target goal with the given radian degrees
     joint_goal = group.get_current_joint_values()
     joint_goal[0] = float(j1) * (pi/180)
     joint_goal[1] = float(j2) * (pi/180)
@@ -439,8 +479,10 @@ def jointAngleButtonEnvoke(group,j1,j2,j3,j4,j5,j6):
     group.stop()
 
 def targetPoseButtonEnvoke(group,X,Y,Z,rX,rY,rZ):
+    group.stop()
+    group.clear_pose_targets()
     print("Target Pose Submitted")
-    pose_goal = group.get_current_pose()
+    pose_goal = deepcopy(group.get_current_pose())
     q = quaternion_from_euler(float(rX) * (pi/180),float(rY) * (pi/180),float(rZ) * (pi/180))
     pose_goal.pose.orientation.x = q[0]
     pose_goal.pose.orientation.y = q[1]
@@ -449,16 +491,17 @@ def targetPoseButtonEnvoke(group,X,Y,Z,rX,rY,rZ):
     pose_goal.pose.position.x = float(X)
     pose_goal.pose.position.y = float(Y)
     pose_goal.pose.position.z = float(Z)
-    group.set_pose_target(pose_goal)
-    planSuccess = group.plan()
-    group.go(wait=False)
 
-    group.stop()
+    group.set_pose_target(pose_goal)
+    (plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
+    group.go(wait=True)
 
 def stepCurrentPose(group,deltaString,direction):
-    print("Target Pose Steop Submitted")
+    group.stop()
+    group.clear_pose_targets()
+    print("Target Pose Step Submitted")
     delta = float(deltaString)
-    pose_goal = group.get_current_pose()
+    pose_goal = deepcopy(group.get_current_pose())
     if (direction.upper() == "X"):
         pose_goal.pose.position.x += float(delta)
     elif (direction.upper() == "Y"):
@@ -473,11 +516,46 @@ def stepCurrentPose(group,deltaString,direction):
         pose_goal.pose.position.z -= float(delta)
 
     group.set_pose_target(pose_goal)
-    planSuccess = group.plan()
-    group.go(wait=False)
+    (plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
+    group.go(wait=True)
 
+def stepCurrentRotation(group,deltaString,direction):
     group.stop()
-    # pass
+    group.clear_pose_targets()
+    print("Target Rotation Step Submitted")
+
+    pose_goal = deepcopy(group.get_current_pose())
+    orientation_q = pose_goal.pose.orientation
+    orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+    roll, pitch, yaw = euler_from_quaternion (orientation_list)
+    roll = float(roll) * (180/pi)
+    pitch = float(pitch) * (180/pi)
+    yaw = float(yaw) * (180/pi)
+    delta = float(deltaString)
+
+    # be the change you want to see
+    if (direction.upper() == "ROLL"):
+        roll += float(delta)
+    elif (direction.upper() == "PITCH"):
+        pitch += float(delta)
+    elif (direction.upper() == "YAW"):
+        yaw += float(delta)
+    elif (direction.upper() == "-ROLL"):
+        roll -= float(delta)
+    elif (direction.upper() == "-PITCH"):
+        pitch -= float(delta)
+    elif (direction.upper() == "-YAW"):
+        yaw -= float(delta)
+    #set the new values
+    q = quaternion_from_euler(roll* (pi/180),pitch* (pi/180),yaw* (pi/180))
+    pose_goal.pose.orientation.x = q[0]
+    pose_goal.pose.orientation.y = q[1]
+    pose_goal.pose.orientation.z = q[2]
+    pose_goal.pose.orientation.w = q[3]
+
+    group.set_pose_target(pose_goal)
+    (plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
+    group.go(wait=True)
 
 def currentJointStateCallback(msg,e1,e2,e3,e4,e5,e6,group,e1right,e2right,e3right,e4right,e5right,e6right):
     positions = msg.position
@@ -509,12 +587,13 @@ def currentPoseStateCallback(group,e1,e2,e3,e4,e5,e6):
     e5.config(text=str(round(pitch,4)))
     e6.config(text=str(round(yaw,4)))
     
-
+#unused but intended to check if currnet pose is equal to pose1
 def posesEqual(pose1,e1,e2,e3,e4,e5,e6):
     if pose1.position.x == e1.get() and pose1.position.y == e2.get() and pose1.position.z == e3.get():
         if pose1.orientation.x == e4.get() and pose1.orientation.y == e5.get() and pose1.orientation.z == e6.get():
             return True
     return False
+
 if __name__ == '__main__':
     try:
         main()
