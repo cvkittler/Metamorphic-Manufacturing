@@ -148,14 +148,13 @@ void rightCloseDetected(int pin, int level, uint32_t tick){
 void leftOpenDetected(int pin, int level, uint32_t tick){
 	printf("ping\n");
 	if(!calibrating){
-		usleep(150);
+		usleep(100);
 		if(errorMode == 0&&gpioRead(pin)){
 			printf("Left manipulator exceeded maximum bounds (too far from center)\n");
 			errorMode = -2;
 			exceedLimits = true;
 			recoverySaveData();
 		}
-		std::cin.get();
 	}
 	
 }
@@ -278,8 +277,8 @@ bool setupPinModes(){
  * 		z is a status where see readme, or read the code...
  */
 void publishCurrentPos(){
-	pos_return.x = eoat.left.currentPosition;
-	pos_return.y = eoat.right.currentPosition;
+	pos_return.x = toolLMax - eoat.left.currentPosition;
+	pos_return.y = toolRMax - eoat.right.currentPosition;
 	if(currentState == Stop){
 		pos_return.z = 3;
 	}
@@ -464,8 +463,9 @@ int main(int argc, char *argv[]){
 							}
 							else{
 								printf("input %f ",posL);
-								posL = toolLMax - posL; //convert directions for dist from center to dist from outside
+								//convert directions for dist from center to dist from outside
 								posR = toolRMax - posR; //convert directions for dist from center to dist from outside
+								posL = toolLMax - posL;
 								printf("abs max %f tool max %f set pos %f\n",posLMax,toolLMax, posL);
 								if(speed<=0||speed>15||posL<0||posR<0||posL>posLMax||posR>posRMax){
 									currentState = state_invalid_command;
