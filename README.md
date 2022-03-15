@@ -16,31 +16,46 @@ Edit the runmodes variables in the file mmmqp_eoat/src/EOAT_c.cpp to run the pro
 - autosetup: 
   - Determines if the EOAT requires user confirmation prior to initializing. 
   - If you are rewiring or running this for the first time, you should probably set this to false until you check things are wired properly.
-  - If you are using manual mode (see variable "Jogging") it doesnt matter what this is set as.
-  - If you are using automatic mode (see variable "Jogging") this should be set as true.
 
 - testTooling
   - Determines if the EOAT will perform the preprogrammed motion tests
 
 # Running the code
 - Ideal starting position for the manipulators is ~10mm from the outermost positions, although any position at least 10mm from innermost position is fine. 
-- Instructions assume you cloned as specified above. If you haven't, ignore the first line and navigate to the /mmmqp_eoat/src/runscripts/
-- Run the situation specific commands in a terminal
-- In the event of an unresolvable error, hit ctrl+c on the terminal windows that pop up
+- Instructions assume you cloned as specified above. If you haven't, ignore the first line and navigate to the /mmmqp_eoat/src/runscripts/ folder
 
 ## Local roscore 
 ie using the EOAT without the ABB 1600
+
+Run the following commands in a terminal:
 ```
 cd ~/catkin_ws/src/mmmqp_eoat/src/runscripts
 sudo bash run-local.sh
 ```
+to end the program, hit ctrl+c in each of the terminals that pop up
 
 ## Remote roscore 
 ie using with the ABB1600 under unified ROS control from another machine
+- generate a wifi hotspot from the computer running roscore and connect the raspberry pi to it
+- if you are using vnc viewer to controll the pi, you can connect your own laptop to the hotpost from the computer running roscore and restart vnc to get access again
+
+Edit the roscore-program-remote.sh file if necessary
+```
+#!/bin.bash
+
+source /home/pi/catkin_ws/devel/setup.bash
+export ROS_MASTER_URI=http://[ip of computer running roscore on IRC5 netowrk]
+export ROS_IP=[raspi ip on otpsot]
+rosrun mmmqp_eoat mmmqp_eoat_node
+read line
+```
+
+Run the following commands in a terminal:
 ```
 cd ~/catkin_ws/src/mmmqp_eoat/src/runscripts
 sudo bash run-remote.sh
 ```
+to end the program, hit ctrl+c in each of the terminals that pop up
 
 # ROS STUFF
 ## Status updates published from EOAT
