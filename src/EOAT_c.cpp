@@ -62,16 +62,24 @@ ros::Subscriber sub;
 enum stateMachine { Stop, initEOAT, waitForInstruction, run, recovery, state_calibrate, state_e_stop, state_invalid_command, set_tool_offset, toolingTest };
 stateMachine previousState = Stop, currentState = initEOAT;
 
+void publishCurrentPos();
 
 void mySigintHandler(int sig)
 {
+	
     // Do custom action, like publishing stop msg
-    printf("exit on ctrl c\n");
-    gpioWrite(EN_L,0);
-	gpioWrite(EN_R,0);
-	gpioTerminate();
-	ros::shutdown();
-	raise(SIGTERM);
+    if(sig == SIGINT){
+		printf("exit on ctrl c\n");
+		gpioWrite(EN_L,0);
+		gpioWrite(EN_R,0);
+		gpioTerminate();
+		ros::shutdown();
+		raise(SIGTERM);
+	}
+	if(sig == SIGALRM){
+		publishCurrentPos();
+		alarm(1);
+	}
 }
 
 
@@ -118,7 +126,7 @@ void recoverySaveData(){
 void leftCloseDetected(int pin, int level, uint32_t tick){
 	if(!checkCenter){
 		usleep(100);
-		if(errorMode == 0&&gpioRead(pin)){
+		if((errorMode == 0)&&gpioRead(pin)){
 			printf("Left manipulator exceeded maximum bounds (too close to center)\n");
 			errorMode = -1;
 			exceedLimits = true;
@@ -133,7 +141,7 @@ void leftCloseDetected(int pin, int level, uint32_t tick){
 void rightCloseDetected(int pin, int level, uint32_t tick){
 	if(!checkCenter){
 		usleep(100);
-		if(errorMode == 0&&gpioRead(pin)){
+		if((errorMode == 0)&&gpioRead(pin)){
 			printf("Right manipulator exceeded maximum bounds (too close to center)\n");
 			errorMode = 1;
 			exceedLimits = true;
@@ -149,7 +157,7 @@ void leftOpenDetected(int pin, int level, uint32_t tick){
 	printf("ping\n");
 	if(!calibrating){
 		usleep(100);
-		if(errorMode == 0&&gpioRead(pin)){
+		if((errorMode == 0)&&gpioRead(pin)){
 			printf("Left manipulator exceeded maximum bounds (too far from center)\n");
 			errorMode = -2;
 			exceedLimits = true;
@@ -165,7 +173,7 @@ void leftOpenDetected(int pin, int level, uint32_t tick){
 void rightOpenDetected(int pin, int level, uint32_t tick){
 	if(!calibrating){
 		usleep(100);
-		if(errorMode == 0&&gpioRead(pin)){
+		if((errorMode == 0)&&gpioRead(pin)){
 			printf("Right manipulator exceeded maximum bounds (too far from center)\n");
 			errorMode = 2;
 			exceedLimits = true;
@@ -350,7 +358,7 @@ int main(int argc, char *argv[]){
 	sub = n.subscribe("mmm_eoat_command",10,rosSetPosition);
 	ros::Rate loop_rate(10);
 	
-	gpioSetTimerFunc(0, 1000, publishCurrentPos);					
+	//gpioSetTimerFunc(0, 1000, publishCurrentPos);					
 	
 	while(ros::ok()){
 		switch(currentState){
@@ -377,6 +385,8 @@ int main(int argc, char *argv[]){
 				}
 				
 				signal(SIGINT, mySigintHandler);
+				signal(SIGALRM, mySigintHandler);
+				alarm(1);
 				
 				//calibrate tooling
 				if(autosetup){
@@ -462,12 +472,27 @@ int main(int argc, char *argv[]){
 								currentState = state_calibrate;
 							}
 							else{
-								printf("input %f ",posL);
+								
 								//convert directions for dist from center to dist from outside
 								posR = toolRMax - posR; //convert directions for dist from center to dist from outside
 								posL = toolLMax - posL;
-								printf("abs max %f tool max %f set pos %f\n",posLMax,toolLMax, posL);
-								if(speed<=0||speed>15||posL<0||posR<0||posL>posLMax||posR>posRMax){
+								printf("input %f %f %d\n",posL, posR, speed);
+								printf("abs max %f %f tool max %f %f\n",posLMax,toolLMax, posRMax, toolRMax);
+								if(speed<=0){
+									//printf("speed too slow\n");
+									//currentState = state_invalid_command;
+									speed = 10;
+								}
+								else if(speed>15){
+									printf("speed too fast\n");
+									currentState = state_invalid_command;
+								}
+								else if(posL<0||posR<0){
+									printf("pos<0\n");
+									currentState = state_invalid_command;
+								}
+								else if(posL>posLMax||posR>posRMax){
+									printf("pos>max\n");
 									currentState = state_invalid_command;
 								}
 								else{

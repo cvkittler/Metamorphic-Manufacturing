@@ -50,7 +50,7 @@ void Tooling::calibrateCenters(){
 	this->moveManipulators(100,100,10);
 	printf("Right center set at %f\n",this->right.maxPosition);
 	printf("Centers set\n");
-	this->moveManipulators(0,0,10);
+	this->moveManipulators(90,90,10);
 
 }
 
@@ -146,6 +146,9 @@ void Tooling::moveManipulators(float positionL, float positionR, int speed){
 		gpioWrite(this->right.step_pin,0);
 		usleep(delayTime);
 	
+	}
+	if(exceedLimits){
+		printf("error %d\n",errorMode);
 	}
 }
 
