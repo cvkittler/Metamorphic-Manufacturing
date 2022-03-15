@@ -19,34 +19,30 @@ Edit the runmodes variables in the file mmmqp_eoat/src/EOAT_c.cpp to run the pro
   - If you are using manual mode (see variable "Jogging") it doesnt matter what this is set as.
   - If you are using automatic mode (see variable "Jogging") this should be set as true.
 
-- Jogging:
-  - Sets the mode between Manual (true) and Automatic (false)
-  - In Manual mode (true), the user issues commands directly via the command line
-  - In Automatic mode (false), the EOAT will follow commands issued via the "mmm_eoat_command" topic
-
 - testTooling
   - Determines if the EOAT will perform the preprogrammed motion tests
 
+# Running the code
+- Ideal starting position for the manipulators is ~10mm from the outermost positions, although any position at least 10mm from innermost position is fine. 
+- Instructions assume you cloned as specified above. If you haven't, ignore the first line and navigate to the /mmmqp_eoat/src/runscripts/
+- Run the situation specific commands in a terminal
+- In the event of an unresolvable error, hit ctrl+c on the terminal windows that pop up
+
+## Local roscore 
+ie using the EOAT without the ABB 1600
+```
+cd ~/catkin_ws/src/mmmqp_eoat/src/runscripts
+sudo bash run-local.sh
+```
+
+## Remote roscore 
+ie using with the ABB1600 under unified ROS control from another machine
+```
+cd ~/catkin_ws/src/mmmqp_eoat/src/runscripts
+sudo bash run-remote.sh
+```
+
 # ROS STUFF
-## Launching
-###### In Terminal 1:
-```
-sudo killall pigpiod
-roscore
-```
-*note: dont run roscore if its being run elsewhere*
-
-###### In Terminal 2:
-```
-sudo su
-source catkin_ws/devel/setup.bash
-export ROS_IP={raspi ip}.1.2**
-export ROS_MASTER_URI=http://{remote computer name}:11311**
-rosrun mmmqp_eoat mmmqp_eoat_node
-```
-*note: Running the ROS Node as root is necessary since the code and Pigpio library make use of system interrupts, which require elevated permisisons and ros doesnt work with sudo [command]. Be careful with what you do in this terminal window for obvious reasons...
-** note: only use these if running roscore elsewhere
-
 ## Status updates published from EOAT
 Topic: "mmm_eoat_position"
 Message: Point32
@@ -139,10 +135,10 @@ Right Outer Limit Switch  | 27
  ```
  
  # TODO
-- [ ] Launch Files etc...
+- [x] Launch Files etc...
 - [ ] setup automatic launch on raspi boot
 - [x] setup remote roscore procedure and stuffs
 - [x] Figure out the automatic configuration of PosLMax and PosRMax
-- [ ] Fix info being published so it actually publishes while moving (if possible)
+- [x] Fix info being published so it actually publishes while moving (if possible)
 - [x] tool offsets
 - [ ] fix position publishing to give dist from center, not dist from outside
