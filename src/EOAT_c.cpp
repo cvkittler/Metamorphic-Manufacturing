@@ -1,8 +1,8 @@
 /*****************************************************
 ** This code runs the End of Arm Tooling for the 
 **  WPI Metamorphic Manufacturing Robot, 2021-2022
-**  and is controlled from an external ROS Melodic
-**  node
+**  and is compatible with either local control, or
+**  control from an external ROS node
 ****************************************************
 ** {Licesense}
 ****************************************************
@@ -12,11 +12,22 @@
 ** Copyright: 2022, MMMQP
 ** Credits:
 ** License: {}
-** Version: 0.2.1
+** Version: 0.3.1
 ** Maintainer: {}
 ** Email: gr-metamorphicmanufacturingmqp2021@wpi.edu
 ** Status: "Dev"
 *****************************************************/
+
+/**************************************************************************************************
+* IMPORTANT NOTE: 
+*	The EOAT node operates using distances with respect to outer sensor.
+* 	The other ROS nodes operate using distances with respect to tool distance from closed.
+*	
+*	IF YOU PLAN ON CHANGING THE ROS MESSAGE INTERACTIONS:
+* 		CONVERT LOCAL DISTANCES TO WRT INSIDE BEFORE TRANSMITTING TO WHEREVER
+*		CONVERT INCOMING DISTANCES TO WRT TO OUTSIDE BEFORE SENDING MOVEMENT COMMANDS
+***************************************************************************************************/
+
 #include "tooling.cpp"
 #include <iostream>
 #include <sys/poll.h>
@@ -31,6 +42,7 @@
 //Runmodes: You can change these
 bool autosetup = true; //if true will not prompt user to confirm setup
 bool testTooling = false; //Test Mode. True will run preprogrammed tests. False will go direcly to waiting for instructions
+int reportTime = 1; //Interval between EOAT reporting status in seconds.
 
 
 //Program Variables. Dont change the following variables
@@ -59,16 +71,16 @@ geometry_msgs::Point32 pos_return;
 ros::Publisher chatter_pub;
 ros::Subscriber sub;
 
+//program states
 enum stateMachine { Stop, initEOAT, waitForInstruction, run, recovery, state_calibrate, state_e_stop, state_invalid_command, set_tool_offset, toolingTest };
 stateMachine previousState = Stop, currentState = initEOAT;
 
 void publishCurrentPos();
 
-void mySigintHandler(int sig)
-{
-	
-    // Do custom action, like publishing stop msg
-    if(sig == SIGINT){
+//Signal handler.
+void mySigintHandler(int sig){
+	// Deals with ctrl+c
+	if(sig == SIGINT){
 		printf("exit on ctrl c\n");
 		gpioWrite(EN_L,0);
 		gpioWrite(EN_R,0);
@@ -76,9 +88,10 @@ void mySigintHandler(int sig)
 		ros::shutdown();
 		raise(SIGTERM);
 	}
+	//Publish position timer
 	if(sig == SIGALRM){
 		publishCurrentPos();
-		alarm(1);
+		alarm(reportTime);
 	}
 }
 
@@ -111,8 +124,9 @@ void emergencyStop(){
 	raise(SIGTERM);
 }
 
-
-
+/**
+ * Notes the precieved position when sensor tripped.
+ */
 void recoverySaveData(){
 	eoat.stop();
 	recoveryL = eoat.left.currentPosition;
@@ -121,9 +135,12 @@ void recoverySaveData(){
 }
 
 /**
- * Left manipulator exceeds operating bounds. Triggers E Stop
+ * ISR function for inner left sensor
+ * If the left manipulator is not conducting initial calibration:
+ *  Stops movements, saves data, preps for recovery
  */
 void leftCloseDetected(int pin, int level, uint32_t tick){
+	printf("ISR:lc\n");
 	if(!checkCenter){
 		usleep(100);
 		if((errorMode == 0)&&gpioRead(pin)){
@@ -136,9 +153,12 @@ void leftCloseDetected(int pin, int level, uint32_t tick){
 }
 
 /**
- * Right manipulator exceeds operating bounds. Triggers E Stop
+ * ISR function for inner right sensor
+ * If the right manipulator is not conducting initial calibration:
+ *  Stops movements, saves data, preps for recovery
  */
 void rightCloseDetected(int pin, int level, uint32_t tick){
+	printf("ISR:rc\n");
 	if(!checkCenter){
 		usleep(100);
 		if((errorMode == 0)&&gpioRead(pin)){
@@ -151,10 +171,12 @@ void rightCloseDetected(int pin, int level, uint32_t tick){
 }
 
 /**
- * Left manipulator exceeds operating bounds. Triggers E Stop if not actively calibrating
+ * ISR function for outer left sensor
+ * If the left manipulator is not calibrating:
+ *  Stops movements, saves data, preps for recovery
  */
 void leftOpenDetected(int pin, int level, uint32_t tick){
-	printf("ping\n");
+	printf("ISR:lo\n");
 	if(!calibrating){
 		usleep(100);
 		if((errorMode == 0)&&gpioRead(pin)){
@@ -166,11 +188,13 @@ void leftOpenDetected(int pin, int level, uint32_t tick){
 	}
 	
 }
-
 /**
- * Right manipulator exceeds operating bounds. Triggers E Stop if not actively calibrating
+ * ISR function for outer right sensor
+ * If the right manipulator is not calibrating:
+ *  Stops movements, saves data, preps for recovery
  */
 void rightOpenDetected(int pin, int level, uint32_t tick){
+	printf("ISR:ro\n");
 	if(!calibrating){
 		usleep(100);
 		if((errorMode == 0)&&gpioRead(pin)){
@@ -203,9 +227,8 @@ bool yesorno(){
 
 
 /**
- * Sets up the Raspberry Pi GPIO
+ * Prep for setting up GPIO
  *
- * @para n/a
  * @return boolean : True if setup completed, else False
  */
 bool setupRPiPins(){
@@ -243,7 +266,7 @@ bool setupRPiPins(){
 }
 
 /**
- * Actually sets the pinmodes
+ * Actually setup the GPIO
  */
 bool setupPinModes(){
 	if (gpioInitialise() < 0){
@@ -280,9 +303,9 @@ bool setupPinModes(){
 
 /**
  * Publishes the current position and status to topic "mmm_eoat_position" as a Point32 where
- * 		x is the left manipulator position in mm
- * 		y is the right manipulator position in mm
- * 		z is a status where see readme, or read the code...
+ * 	x is the left manipulator position in mm
+ * 	y is the right manipulator position in mm
+ * 	z is a status where see readme, or read the code...
  */
 void publishCurrentPos(){
 	pos_return.x = toolLMax - eoat.left.currentPosition;
@@ -328,7 +351,7 @@ void publishCurrentPos(){
 }
 
 /**
- * Records ROS input on message recieved. Updates command if its different from last one
+ * Records ROS input on message recieved. Flags for execution if any instruction is different from previous
  */
 void rosSetPosition(const geometry_msgs::Point32::ConstPtr& msg){
 	if(msg->x != targetL){
@@ -346,32 +369,37 @@ void rosSetPosition(const geometry_msgs::Point32::ConstPtr& msg){
 	
 }
 
-
+//Actual code that does stuff
 int main(int argc, char *argv[]){
+	//ROS initialization stuffs
 	ros::init(argc, argv, "mmm_eoat", ros::init_options::NoSigintHandler);
 	ros::NodeHandle n;
 	ros::spinOnce();
-	
+
+	//This line probably obsolete.
 	struct pollfd mypoll = { STDIN_FILENO, POLLIN|POLLPRI };
 	
+	//Setup the status publishing
 	chatter_pub = n.advertise<geometry_msgs::Point32>("mmm_eoat_position",500);
 	sub = n.subscribe("mmm_eoat_command",10,rosSetPosition);
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(10);			
 	
-	//gpioSetTimerFunc(0, 1000, publishCurrentPos);					
-	
+	//State machine
 	while(ros::ok()){
 		switch(currentState){
 			case Stop:
 				printf("State = Stop");
 				publishCurrentPos();
-				//stopRobot
 			
 				break;
 			
+			//All the initialization stuffs
 			case initEOAT:
 				printf("State = Init\n");
+				
+				//publish that EOAT is initializing
 				publishCurrentPos();
+				
 				//setup pins
 				if(!setupRPiPins()){
 					printf("Error during Pin Setup. Exiting\n");
@@ -384,15 +412,17 @@ int main(int argc, char *argv[]){
 					}	
 				}
 				
+				//setup the signal handling to deal with program termination, and the status update timer
 				signal(SIGINT, mySigintHandler);
 				signal(SIGALRM, mySigintHandler);
 				alarm(1);
 				
-				//calibrate tooling
+				//Initial EOAT calibration: Automatic mode
 				if(autosetup){
+					//Calibrate outsides
 					printf("error %d eL %d calib %d center %d\n",errorMode, exceedLimits, calibrating, checkCenter);
 					eoat.left.currentPosition = 0.0;
-					eoat.right.currentPosition	= 0.0;
+					eoat.right.currentPosition = 0.0;
 					exceedLimits = false;
 					calibrating = true;
 					errorMode = 0;
@@ -401,8 +431,9 @@ int main(int argc, char *argv[]){
 					exceedLimits = false;
 					checkCenter = true;
 					errorMode = 0;
+					
+					//Calibrate insides
 					printf("error %d eL %d calib %d center %d\n",errorMode, exceedLimits, calibrating, checkCenter);
-					//std::cin.get();
 					eoat.calibrateCenters();
 					posLMax = eoat.left.maxPosition - 4;
 					posRMax = eoat.right.maxPosition - 4;
@@ -411,17 +442,34 @@ int main(int argc, char *argv[]){
 					publishCurrentPos();
 					printf("max positions set at %f and %f\n",posLMax,posRMax);
 				}
+				
+				//Initial EOAT calibration: manual mode
 				else{
 					printf("Tooling Calibration Necessary. Manipulators will move during calibration.\n");
 					printf("Continue? (y/n)\n");
 					if(yesorno()){
+						//Calibrate outsides
+						printf("error %d eL %d calib %d center %d\n",errorMode, exceedLimits, calibrating, checkCenter);
+						eoat.left.currentPosition = 0.0;
+						eoat.right.currentPosition = 0.0;
+						exceedLimits = false;
+						calibrating = true;
+						errorMode = 0;
 						eoat.calibrateTooling();
+						printf("error %d eL %d calib %d center %d\n",errorMode, exceedLimits, calibrating, checkCenter);
+						exceedLimits = false;
+						checkCenter = true;
+						errorMode = 0;
+					
+						//Calibrate insides
+						printf("error %d eL %d calib %d center %d\n",errorMode, exceedLimits, calibrating, checkCenter);
 						eoat.calibrateCenters();
-						posLMax = eoat.left.maxPosition;
-						posRMax = eoat.right.maxPosition;
+						posLMax = eoat.left.maxPosition - 4;
+						posRMax = eoat.right.maxPosition - 4;
 						toolLMax = posLMax;
 						toolRMax = posRMax;
 						publishCurrentPos();
+						printf("max positions set at %f and %f\n",posLMax,posRMax);
 					}
 					else{
 						printf("Tooling Calibration aborted by user\n");
@@ -429,6 +477,7 @@ int main(int argc, char *argv[]){
 					}
 				}
 				
+				//if programed to run tests, go to test state, else go to main loop
 				if(testTooling){
 					currentState = toolingTest;
 				}
@@ -439,10 +488,12 @@ int main(int argc, char *argv[]){
 				eoat.stop();
 				break;
 			
+			//Checks for errors, checks for new instructions
 			case waitForInstruction:
 				printf("State = wait for instruction\n");
 				publishCurrentPos();
 				
+				//if a new instruction recieved, prep them for execution
 				if(recievedInstruction){
 					posL = targetL;
 					posR = targetR;
@@ -458,10 +509,11 @@ int main(int argc, char *argv[]){
 					currentState = recovery;
 				}
 				
-				//if instruction recieved from either command line or ROS execute it... otherwise loop again
+				//if instruction recieved check for command codes and route to appropriate execution stage
 				else{
 					if(recievedInstruction){
 						recievedInstruction = false;
+							//check for important commands
 							if(speed == -911){
 								currentState = state_e_stop;
 							}
@@ -471,21 +523,21 @@ int main(int argc, char *argv[]){
 							else if(speed == -732){
 								currentState = state_calibrate;
 							}
+						
+							//movement command parsing
 							else{
-								
 								//convert directions for dist from center to dist from outside
-								posR = toolRMax - posR; //convert directions for dist from center to dist from outside
+								posR = toolRMax - posR;
 								posL = toolLMax - posL;
-								printf("input %f %f %d\n",posL, posR, speed);
-								printf("abs max %f %f tool max %f %f\n",posLMax,toolLMax, posRMax, toolRMax);
 								if(speed<=0){
 									//printf("speed too slow\n");
 									//currentState = state_invalid_command;
 									speed = 10;
 								}
 								else if(speed>15){
-									printf("speed too fast\n");
-									currentState = state_invalid_command;
+									//printf("speed too fast\n");
+									//currentState = state_invalid_command;
+									speed = 10;
 								}
 								else if(posL<0||posR<0){
 									printf("pos<0\n");
@@ -505,12 +557,14 @@ int main(int argc, char *argv[]){
 				
 				break;
 			
+			//Execute move command.
 			case run:
 				publishCurrentPos();
 				printf("State = run\n");
 			
 				eoat.moveManipulators(posL,posR,speed);
 				
+				//checks if above command errored out on a sensor. If yes, sends to recovery. Else wait for new instruction
 				if(exceedLimits){
 					currentState = recovery;
 				}
@@ -519,6 +573,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			
+			//Figure out what went wrong and fix it
 			case recovery:
 				publishCurrentPos();
 				printf("State = recovery\n");
@@ -535,6 +590,7 @@ int main(int argc, char *argv[]){
 				
 				break;
 			
+			//Calibrates EOAT to outside again
 			case state_calibrate:
 				publishCurrentPos();
 				eoat.calibrateTooling();
@@ -542,20 +598,23 @@ int main(int argc, char *argv[]){
 				currentState = waitForInstruction;
 				
 				break;
-				
+			
+			//Things have gone very wrong. uh oh...
 			case state_e_stop:
 				publishCurrentPos();
 				emergencyStop();
 				
 				break;
-				
+			
+			//Tell the higher level code you sent a command the EOAT cannot execute
 			case state_invalid_command:
 				printf("invalid command\n");
 				publishCurrentPos();
 				currentState = waitForInstruction;
 				
 				break;
-				
+			
+			//Set the distance the current tools extend past inner sensor
 			case set_tool_offset:
 				printf("setToolOffsets\n");
 				offsetL = posL;
@@ -569,6 +628,7 @@ int main(int argc, char *argv[]){
 				
 				break;
 			
+			//test the tooling. Havent touched this in forever, so hopefully it still works
 			case toolingTest:
 				publishCurrentPos();
 				printf("running preset tests");
