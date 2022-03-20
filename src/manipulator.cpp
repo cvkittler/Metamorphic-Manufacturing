@@ -1,5 +1,6 @@
 #include "manipulator.h"
 
+//ALL POSITIONS RELATIVE TO OUTSIDE
 
 /**
  * Constructor for a manipulator object
@@ -78,21 +79,19 @@ void Manipulator::moveManipulator(float position, int speed){
 	}
 	float distance = position - this->currentPosition;
 	
-	//math
+	//calculate the pulses to move from current position to new position
 	int num_pulses = stepsPerMillimeter * abs(distance);
 	int frequency = stepsPerMillimeter * speed;
 	int microperiod = (1/frequency)*1000000; //period in microseconds
 	int delayTime = microperiod/2;
 	
-	printf("moving from position %f to %f This will take %d steps\n",this->currentPosition, position, num_pulses);
+	printf("moving from %f to %f\n",this->currentPosition, position);
 	
 	//move the manipulator the number of pulses necessary. update position periodically (every ~1/10th of a mm)
 	this->setEnable(true);
 	for(int i = 0;i<num_pulses&&!exceedLimits;i++){
 		if(i % 128 == 0){
-			//this->currentPosition = this->currentPosition + 128*distMultiplier*distPerStep;
 			this->manipMoved(128*distMultiplier*distPerStep);
-			//printf("step %d pos %f dir %d\n", i, this->currentPosition, distMultiplier);
 		}
 		gpioWrite(this->step_pin,1);
 		usleep(delayTime);
@@ -103,7 +102,8 @@ void Manipulator::moveManipulator(float position, int speed){
 
 
 /**
- * Moves a manipulator. Does same thing as moveManipulator, but ignores exceed position flag
+ * Recovery movement command. Basically same as moveManipulator, except it ignores any sensors.
+ *  Used to back the manipulators off the sensors if tripped. Can be used any other time, but shouldnt due to the fact it ignores sensors... duh...
  *
  * @para position : float : absolute position to move to relative to max open
  * @para speed : int : speed of manipulator in mm/s
@@ -122,13 +122,13 @@ void Manipulator::recoverManipulator(float position, int speed){
 	}
 	float distance = position - this->currentPosition;
 	
-	//math
+	//calculate the pulses to move from current position to new position
 	int num_pulses = stepsPerMillimeter * abs(distance);
 	int frequency = stepsPerMillimeter * speed;
 	int microperiod = (1/frequency)*1000000; //period in microseconds
 	int delayTime = microperiod/2;
 	
-	printf("moving from position %f to %f This will take %d steps\n",this->currentPosition, position, num_pulses);
+	printf("RECOVERY: moving from %f to %f\n",this->currentPosition, position);
 	
 	//move the manipulator the number of pulses necessary. update position periodically (every ~1/10th of a mm)
 	this->setEnable(true);
@@ -148,6 +148,7 @@ void Manipulator::recoverManipulator(float position, int speed){
 
 /**
  * Calibrates a manipulator by moving it until the max open sensor trips
+ *  Note: closes the manipulator 5 mm before trying to find max open
  */ 
 void Manipulator::calibrateManipulator(){
 	int calibratePin;
@@ -158,7 +159,7 @@ void Manipulator::calibrateManipulator(){
 		calibratePin = S_R_open;
 	}
 	
-	
+	//close manipulator to clear sensor if already tripped
 	this->moveManipulator(5,10);
 	
 	int frequency = 1280;
@@ -179,7 +180,8 @@ void Manipulator::calibrateManipulator(){
 	
 	printf("Sensor Tripped\n");
 	
-	//move the manipulator in 10mm, and set this as zero (so that we dont regularly e stop the thing)
+	//close manipulator 10mm from the position at which it trips the outer sensor. Set this position to "0"
+	// this gives us a safety margin so the manipulator is not constantly tripping when we send it to max open
 	this->recoverManipulator(10,10);
 	this->currentPosition = 0;
 	usleep(100);
@@ -191,7 +193,8 @@ void Manipulator::calibrateManipulator(){
 
 
 /**
- * sets the maximum closed value for a manipulator
+ * Calculates the distance the manipulator can close from "0" and sets movement limits
+ *  Note: this function is privledged and can ignore sensors...
  */ 
 void Manipulator::calibrateCenter(){
 	int calibratePin;
@@ -208,7 +211,7 @@ void Manipulator::calibrateCenter(){
 	this->setDirection(true);
 	
 	while(!gpioRead(calibratePin)){
-		this->moveManipulator((this->currentPosition + .5),1);
+		this->recoverManipulator((this->currentPosition + .5),1);
 		usleep(100);
 	}
 	
