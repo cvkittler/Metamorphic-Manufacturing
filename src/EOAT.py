@@ -3,9 +3,10 @@
 ## This code runs the End of Arm Tooling for the 
 ##  WPI Metamorphic Manufacturing Robot, 2021-2022
 ##  and is controlled from an external ROS Melodic
-##  node
+##  node. This code is superceded by the C++ code
+##  in the same repository.
 ####################################################
-## {Licesense}
+## 
 ####################################################
 ## Authors: Sean Barry, Charles Kittler,
 ##			Jonathan Landay, Jacob Mackenzi,
@@ -14,9 +15,9 @@
 ## Credits:
 ## License: {}
 ## Version: 0.1.5
-## Maintainer: {}
+## Maintainer: 
 ## Email: gr-metamorphicmanufacturingmqp2021@wpi.edu
-## Status: "Dev"
+## Status: "Obsolete"
 #################################################### 
 
 # Imports
