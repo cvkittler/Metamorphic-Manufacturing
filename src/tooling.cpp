@@ -21,7 +21,7 @@ void Tooling::stop(){
 }
 
 /**
- * Calibrates the manipulators on tooling
+ * Calibrates the manipulators by moving them to the outer sensors. 
  */ 
 void Tooling::calibrateTooling(){
 	printf("Calibration in progress....\n");
@@ -37,7 +37,7 @@ void Tooling::calibrateTooling(){
 
 
 /**
- * Calibrates the manipulator centers
+ * Calculates the distance between the outer and inner sensors and sets tool movement limitations.
  */ 
 void Tooling::calibrateCenters(){
 	this->moveManipulators(100,100,10);
@@ -45,6 +45,7 @@ void Tooling::calibrateCenters(){
 	this->left.calibrateCenter();
 	this->moveManipulators(100,100,10);
 	printf("Left Center Set at %f\n",this->left.maxPosition);
+	
 	printf("Checking right center\n");
 	this->right.calibrateCenter();
 	this->moveManipulators(100,100,10);
@@ -79,7 +80,7 @@ void Tooling::moveAManipulator(float position, int speed, bool side){
  */ 
 void Tooling::moveManipulators(float positionL, float positionR, int speed){
 	int distMultiplierL, distMultiplierR;
-	//printf("error mode %d\n",errorMode);
+
 	//if desired position more closed than current position, set direction closed
 	if(positionL > this->left.currentPosition){
 		distMultiplierL = 1;
@@ -99,27 +100,31 @@ void Tooling::moveManipulators(float positionL, float positionR, int speed){
 	}
 	
 	
+	//calculate the number of steps necessary to move each manipulator from the current position to the commanded position
 	float distanceL = positionL - this->left.currentPosition;
 	float distanceR = positionR - this->right.currentPosition;
 	float distPerStepL = this->left.distPerStep;
 	float distPerStepR = this->right.distPerStep;
 	
-	//math
 	int num_pulses_L = this->left.stepsPerMillimeter * abs(distanceL);
 	int num_pulses_R = this->right.stepsPerMillimeter * abs(distanceR);
 	int frequency = this->left.stepsPerMillimeter * speed;
 	int microperiod = (1/frequency)*1000000; //period in microseconds
 	int delayTime = microperiod/2;
 	
-	printf("moving left from %f to %f and right from %f to %f. This will take %d and %d steps respectively\n",this->left.currentPosition, positionL, this->right.currentPosition, positionR, num_pulses_L, num_pulses_R);
+	printf("moving from L: %f and R: %f to L: %f R: %f \n",this->left.currentPosition, this->right.currentPosition, positionL, positionR);
 	
-	//move the manipulators the number of pulses necessary. update position periodically (every ~1/10th of a mm)
+
 	this->left.setEnable(true);
 	this->right.setEnable(true);
 	
 	int l = 0, r = 0;
 	bool leftRunning = true, rightRunning = true;
-	while((leftRunning || rightRunning)&&!exceedLimits){
+	
+	// As long as at at least one manipulator has not reached its target AND no sensor is tripped:
+	//  move the manipulators the number of pulses necessary. update position periodically (every ~1/10th of a mm)
+	while((leftRunning || rightRunning)&&!exceedLimits){ 
+		//Check if left reached target. If not, give half a pwm pulse
 		if(l<num_pulses_L){
 			gpioWrite(this->left.step_pin,1);
 			l++;
@@ -130,7 +135,8 @@ void Tooling::moveManipulators(float positionL, float positionR, int speed){
 		else{
 			leftRunning = false;
 		}
-			
+		
+		//check if right reached target. if not, give half a pwm pulse	
 		if(r<num_pulses_R){
 			gpioWrite(this->right.step_pin,1);
 			r++;
@@ -142,6 +148,8 @@ void Tooling::moveManipulators(float positionL, float positionR, int speed){
 			rightRunning = false;
 		}
 		usleep(delayTime);
+		
+		//give the other half of the pwm pulse
 		gpioWrite(this->left.step_pin,0);
 		gpioWrite(this->right.step_pin,0);
 		usleep(delayTime);
@@ -153,7 +161,12 @@ void Tooling::moveManipulators(float positionL, float positionR, int speed){
 }
 
 /**
- * Recovers Tooling
+ * Recovers the tooling after a sensor tripped by issuing a movement override to clear the sensor.
+ * @para mode : int : sensor code for which manipulator went too far in which direction
+ *  -2: Left manipulator too far from center
+ *  -1: Left manipulator too close to center
+ *   1: Right manipulator too close to center
+ *   2: Right manipulator too far from center
  */ 
 void Tooling::recoverTooling(int mode){
 	switch(mode){
