@@ -157,3 +157,8 @@ Right Outer Limit Switch  | 27
 - [x] Fix info being published so it actually publishes while moving (if possible)
 - [x] tool offsets
 - [ ] fix position publishing to give dist from center, not dist from outside
+- [ ] Figure out automatic program termination for errors during initial calibration
+
+# Misc Notes and stuff
+- Errors that occur during the initial calibration are fatal and non recoverable (usually in the form of a locked out manipulator unable to move due to an anomalous sensor reading getting stuck in a forever loop of trying to move while locked out)
+- The left outer limit switch intermittenly experiences a glitch where it reports many toggles between closed an open circuits in quick succession.
