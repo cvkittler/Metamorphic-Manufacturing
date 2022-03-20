@@ -1,5 +1,7 @@
 #include "tooling.h"
 
+//ALL POSITIONS RELATIVE TO OUTSIDE
+
 /**
  * Constructor for a Tooling Object
  * 
