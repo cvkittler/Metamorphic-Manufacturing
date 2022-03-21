@@ -470,6 +470,7 @@ int main(int argc, char *argv[]){
 						toolRMax = posRMax;
 						publishCurrentPos();
 						printf("max positions set at %f and %f\n",posLMax,posRMax);
+						printf("tool max positions set at %f %f\n",toolLMax,toolRMax);
 					}
 					else{
 						printf("Tooling Calibration aborted by user\n");
@@ -527,8 +528,11 @@ int main(int argc, char *argv[]){
 							//movement command parsing
 							else{
 								//convert directions for dist from center to dist from outside
+								printf("command %f %f tool %f %f",posL,posR,toolLMax,toolRMax);
 								posR = toolRMax - posR;
 								posL = toolLMax - posL;
+								printf("center %f %f\n",posL,posR);
+								//5 = ? - 20
 								if(speed<=0){
 									//printf("speed too slow\n");
 									//currentState = state_invalid_command;
