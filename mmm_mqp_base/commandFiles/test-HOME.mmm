@@ -1,0 +1,3 @@
+COMMENT:Test to see if the HOME command works;
+HOME;
+END

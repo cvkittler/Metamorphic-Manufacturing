@@ -1,0 +1,3 @@
+COMMENT:Test to see if the JOINT command works;
+JOINT:-90:20:-20:30:-30:90;
+END

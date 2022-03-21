@@ -1,0 +1,3 @@
+COMMENT:Test to see if the SCAN command works;
+SCAN;
+END

@@ -23,21 +23,7 @@
   </include>
 
   <!-- start imu filter -->
-  <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node">
-    <param name="_use_mag"      value="false" />
-    <param name="_publish_tf"   value="false"/>
-    <param name="_world_frame"  value="enu" />
-    <param name="/imu/data_raw" value="/camera/imu" />
-    <param name="/imu/data"     value="/rtabmap/imu" />
-  </node>
-  
-  <node type="point_cloud_assembler" pkg="laser_assembler"
-        name="my_assembler">
-    <remap from="cloud" to="/mmm_pointcloud"/>
-    <param name="max_clouds" type="int" value="5" />
-    <param name="fixed_frame" type="string" value="base_link" />
-  </node>
-
   <node name="mmm_pc2_to_pc" pkg="mmm_mqp_base" type="pointcloud_converter.py" output="screen"/>
+  <node name="mmm_dumb_pc_assembler" pkg="mmm_mqp_base" type="mmm_dumb_pc_assembler.py" output="screen"/>
   <node name="mmm_mqp_base_scan_service" pkg="mmm_mqp_base" type="mmm_scan_service.py" output="screen"/>
 </launch>

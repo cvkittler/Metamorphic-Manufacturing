@@ -5,34 +5,58 @@ Launch commands
         roslaunch mmm_mqp_base main.launch sim:=true
     Test to see if the realsense camera is working
         $ 
-    Testing point cloud coversion with pcl package
+    Testing point cloud conversion with pcl package
         rosrun point_cloud_converter point_cloud_converter points2_in:=/camera/depth/color/points points_out:=/mmm_pointcloud_scan
 
 
-Things that I habe installed while trying to make this work:
+Things that I have installed while trying to make this work:
     NEEDED ros melodic
-    NEEDED ros industial
+    NEEDED ros industrial
     NEEDED ros abb drivers
     NEEDED ros abb experimental
     NEEDED ros realsense2_camera
-    NEEDED ros realsense2_discription
+    NEEDED ros realsense2_description
 
+Also some of the junk I tried along the way
     install out code
     sudo apt install ros-melodic-pcl-ros
     sudo apt install pcl-tools
     sudo apt-get install ros-melodic-laser-assembler ros-melodic-laser-geometry ros-melodic-rqt-controller-manager ros-melodic-ros-controllers ros-melodic-gazebo-ros ros-melodic-gazebo-ros-control ros-melodic-robot-state-publisher ros-melodic-ros-comm ros-melodic-gazebo-plugins
 
 Connected Devices expected IPv4 Addresses:
-    NAME            IPv4 Adress
+    NAME            IPv4 Address
     Robot           192.168.100.100
     Main Computer   192.168.100.104
-    Rpi             192.168.100.105
+    Rpi             10.42.0.123
 
 Errors that can happen and how to fix them:
-- on the flex pendant if the robot doesnt move after clicking start make sure you are in the production windown and then release the deadmans switch and then press it again and restart the program without restarting the Program pointer
+- on the flex pendant if the robot doesn't move after clicking start make sure you are in the production window and then release the deadman switch and then press it again and restart the program without restarting the Program pointer
 - If there is ever a "Socket Error" on the flex pendant to fix this you click ABB button (top left) -> Restart -> Warm Start
-- if arm not the right size (no model so the joints shount line up)
+- if arm not the right size (no model so the joints shouldn't line up)
     first check for the abb_irb1600_6_145_support package and look at /urdf/irb1600_6_12_macro.xacro 
-    edit the src/abb_experimental/abb_irb1600_support/urdf/irb1600_6_12_macro.xacro file to make the legths right
-- The path planning isn't working real robot isnt in the right spot
+    edit the src/abb_experimental/abb_irb1600_support/urdf/irb1600_6_12_macro.xacro file to make the lengths right
+- The path planning isn't working real robot isn't in the right spot
     in the robot_interface_download_irb1600_6_145 make sure J23_coupled is false
+- The joint sender code would not close with ros
+    make sure the tk.mainloop() code (which is blocking) is called last and there is a way to kill the gui (e.i. rospy.on_shutdown(lambda:tk.quit())) 
+- The robot was ending execution of trajectories because they were taking too long
+    in trajectory_execution.launch.xml in the abb_irb1600_6_145_support package changed (1.2 -> 4) <param name="trajectory_execution/allowed_execution_duration_scaling" value="4.0"/>
+- The robot was going into a pose where the arm would crush the clay
+    Changed the joint limits in the file src/abb_irb1600_6_145_support/urdf/irb1600_6_145_macro.xacro
+
+
+Obscure References:
+Kinematic solver README (for some reason this was hard to find)
+    https://bitbucket.org/traclabs/trac_ik/src/9ef45fd67ede62d389c410720ad3915bb8c1dc8f/trac_ik_lib/README.md
+
+Creating a Hotpot for the pi to Connect to over wifi
+    https://www.debugpoint.com/2018/05/create-wifi-hotspot-ubuntu-android-support/
+
+    then run the below command to configure the wifi settings (https://www.geeksforgeeks.org/creating-and-configuring-wi-fi-hotspot-in-ubuntu/)
+    $ nm-connection-editor 
+    Network Settings Expected
+    SID :       mmm MQP
+    Password:   mmmqp2021
+
+Configure multi machine on pi and Main Computer
+    https://husarion.com/tutorials/ros-tutorials/5-running-ros-on-multiple-machines/;

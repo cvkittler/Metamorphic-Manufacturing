@@ -1,27 +1,32 @@
 #!/usr/bin/env python
 from copy import deepcopy
 from email.header import Header
+from itertools import count
 import rospy
 from geometry_msgs.msg import Point32
 from sensor_msgs.msg import PointCloud2,PointCloud,ChannelFloat32
+import sensor_msgs.point_cloud2 as pc2
 import ros_numpy as np
 from numpy import zeros
 from std_srvs.srv import Empty
+from tf import TransformListener
 
-pub = rospy.Publisher("/mmm_pointcloud", PointCloud2, queue_size=1)
-savedPoints = None
+pub = None
+mostRecentCloud = None
+listener = None
+
 def callback(data):
-    global savedPoints
+    global mostRecentCloud
     pc = np.numpify(data)
     points = zeros((pc.shape[0],3))
     points[:,0]=pc['x']
     points[:,1]=pc['y']
     points[:,2]=pc['z']
-    savedPoints = data
+    mostRecentCloud = data
 
 def sendPointCloud(msg):
-    global savedPoints
-    localPoints = deepcopy(savedPoints)
+    global mostRecentCloud, pub, listener
+    localPoints = deepcopy(mostRecentCloud)
     #make header
     header = Header()
     header.stamp = rospy.Time.now()
@@ -29,14 +34,22 @@ def sendPointCloud(msg):
     #make point cloud
     currPointCloud = PointCloud()
     currPointCloud.header = header
-    # for i in range(0,len(localPoints[:,0]), 50):
-    #     currPointCloud.points.append(Point32(localPoints[i,0],localPoints[i,1],localPoints[i,2]))
-    #     currPointCloud.channels.append(ChannelFloat32())
-    # print("Publishing Point Cloud" + str(len(currPointCloud.points)))
-    pub.publish(localPoints)
+    counter = 0
+    for p in pc2.read_points(localPoints, field_names = ("x", "y", "z"), skip_nans=True):
+        counter += 1
+        if(counter % 100 == 0):
+            currPointCloud.points.append(Point32(p[0],p[1],p[2]) )
+            currPointCloud.channels.append(ChannelFloat32())
+    print("Publishing Point Cloud with " + str(len(currPointCloud.points))+ "Points")
+    dataLocal = listener.transformPointCloud("/base_link", currPointCloud)
+    pub.publish(dataLocal)
     return []
 
 def mainLoop():
+    global pub, listener
+    listener = TransformListener()
+    pub = rospy.Publisher("/mmm_pointcloud", PointCloud, queue_size=1)
+
     while not rospy.is_shutdown():
         rospy.Subscriber("/camera/depth/color/points", PointCloud2, callback)
         rospy.spin()
