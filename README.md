@@ -1,16 +1,50 @@
-# Installing and Setup
-## OS and ROS
-Running ROS Melodic on Raspberry Pi OS. Image here: http://sar-lab.net/teaching/ros-images-for-raspberry-pi/
+# 1 Initial Setup
+This project utilizes a Raspberry Pi 4 running ROS Melodic on Raspberry Pi OS. See Section 1.1 to setup a brand new Raspberry Pi, or Section 1.2 to use the existing pi on the EOAT
 
-Enable the GUI
+## 1.1 Fresh OS and ROS Install
+1. Prerequisites
+   1. Another computer running Ubuntu that can generate a wifi hotspot
+   2. A Monitor + Display Cable (and likely a dongle to connect to the Pi's display outputs)
+   3. Keyboard (Mouse not required, but nice to have)
+   5. Internet Connection (You can do whatever ITS suggests for connecting to WPI-Wireless, but we just used hotspots from our laptops)
 
-Install Pigpio library (if its not installed, cant remember)
+2. Setup your Raspberry Pi 4 (Pi 3 worked as well, but was slower) with Raspberry Pi OS and ROS Melodic
+   1. We used an image found at http://sar-lab.net/teaching/ros-images-for-raspberry-pi/ - Specifically the ROS Melodic on Raspberry Pi OS (Aug 2020) version
+   2. Enable the GUI
+   3. Setup VNC or other remote desktop software of your choice
 
-Clone THIS BRANCH such that the package is in ~/catkin_ws/src/ (ie you get ~/catkin_ws/src/mmmqp_eoat/src/EOAT_c.cpp etc...)
+3. Install the requisite libraries (see Section 4.2)
+
+4. Clone THIS BRANCH (EOAT_ros) such that the package is in ~/catkin_ws/src/ (ie you get ~/catkin_ws/src/mmmqp_eoat/src/EOAT_c.cpp etc...)
+
+5. Setup a wifi hotspot on the Linux computer you wish to run the High Level Program from and connect the Pi to it
+   1. At this point you can remote desktop in from either the computer running the hotspot, or another computer also connected to the hotspot
+
+6. Run or edit the code as desired 
+
+## 1.2 Use the existing Raspberry Pi setup by the 2021-2022 team
+1. Prerequisites
+   1. Another computer running Ubuntu that can generate a wifi hotspot
+   2. A computer with VNC Viewer installed
+
+2. Setup a wifi hotspot on the Ubuntu machine running the high level code
+    1. Network SSID: 
+    2. Network Password
+    3. https://www.fosslinux.com/2576/how-to-create-and-configure-wi-fi-hotspot-in-ubuntu-17-10.htm
+
+3. Power on the Raspberry Pi (note: the hotspot must be running prior to powering on the pi because of how the VNC server on the Pi Works)
+    1. Find the IP Address of the raspberry pi on the hotspot using the command `arp -a` in a terminal on the computer generating the hotspot
+
+4. Launch VNC on either the ubuntu machine, or another computer connected to the hotspot and connect to the ip found in the previous step
+    1. Username: Pi
+    2. Password: mmmqp2021
+
+6. Run or edit the code as desired
 
 
 
-## Code
+# 2 Code
+## 2.1 Runmodes
 Edit the runmodes variables in the file mmmqp_eoat/src/EOAT_c.cpp to run the program how you desire
 
 - autosetup: 
@@ -20,12 +54,14 @@ Edit the runmodes variables in the file mmmqp_eoat/src/EOAT_c.cpp to run the pro
 - testTooling
   - Determines if the EOAT will perform the preprogrammed motion tests
 
-# Running the code
-- Ideal starting position for the manipulators is ~10mm from the outermost positions, although any position at least 10mm from innermost position is fine. 
+
+## 2.2 Manipulator Positioning before starting the program
+- Ideal starting position for the manipulators is ~10mm from the outermost positions, although any position **at least 10mm from actuating the inner limit switches** is fine. 
 - Instructions assume you cloned as specified above. If you haven't, ignore the first line and navigate to the /mmmqp_eoat/src/runscripts/ folder
 
-## Local roscore 
-ie using the EOAT without the ABB 1600
+
+## 2.3 Running the program with a local roscore
+ie using the EOAT without the ABB 1600. Commands must be issued from the command line on the raspberry pi. See Section 3.2
 
 Run the following commands in a terminal:
 ```
@@ -34,18 +70,19 @@ sudo bash run-local.sh
 ```
 to end the program, hit ctrl+c in each of the terminals that pop up
 
-## Remote roscore 
-ie using with the ABB1600 under unified ROS control from another machine
-- generate a wifi hotspot from the computer running roscore and connect the raspberry pi to it
-- if you are using vnc viewer to controll the pi, you can connect your own laptop to the hotpost from the computer running roscore and restart vnc to get access again
 
-Edit the roscore-program-remote.sh file if necessary
+## 2.4 Running the rogram with a remote roscore 
+ie using with the ABB1600 under unified ROS control from another machine. Commands can be issued either from the command line on the Raspberry Pi OR another ROS Node
+- Connect the Raspberry Pi a wifi hotspot running on the machine running roscore (likely the ubuntu machine used in Section 1)
+- Remote desktop to the Raspberry Pi using the method of your choice
+
+Edit the roscore-program-remote.sh file if necessary (right click -> text editor)
 ```
 #!/bin.bash
 
 source /home/pi/catkin_ws/devel/setup.bash
 export ROS_MASTER_URI=http://[ip of computer running roscore on IRC5 netowrk]
-export ROS_IP=[raspi ip on otpsot]
+export ROS_IP=[raspi ip on hotpsot]
 rosrun mmmqp_eoat mmmqp_eoat_node
 read line
 ```
@@ -57,8 +94,12 @@ sudo bash run-remote.sh
 ```
 to end the program, hit ctrl+c in each of the terminals that pop up
 
-# ROS STUFF
-## Status updates published from EOAT
+See README for the ABB_ros branch for instructions setting up the remote roscore
+
+
+
+# 3 ROS STUFF
+## 3.1 Status updates published from EOAT
 Topic: "mmm_eoat_position"
 Message: Point32
 
@@ -85,8 +126,7 @@ Status/Error Code  | Meaning
 View this topic by opening a terminal and using the command "rostopic echo mmm_eoat_position"
 
 
-
-## Commands being issued to EOAT
+## 3.2 Commands being issued to EOAT
 Topic: "mmm_eoat_command"
 Message: Point32
 
@@ -121,8 +161,10 @@ rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x: 45, y: 30, z: -7
 rostopic pub -r 10 /mmm_eoat_command geometry_msgs/Point32 '{x: 45, y: 30, z: 911}'
 ```
 
-# Raspberry Pi Stuff
-## Wiring Pinout
+
+
+# 4 Raspberry Pi Stuff
+## 4.1 Control Signal Wiring
 To change these, edit the file  ~/catkin_ws/src/mmmqp_eoat/src/manipulator.h
 Use  | BCM Pin #
 ------------- | -------------
@@ -139,8 +181,27 @@ Right Outer Limit Switch  | 27
 
 ![Raspberry Pi 4 Pinout](https://www.etechnophiles.com/wp-content/uploads/2021/01/R-Pi-4-GPIO-Pinout.jpg)
 
-# Random Stuff
-## Geany Build commands
+Limit switch wiring:
+Terminal  | Connected to
+------------- | -------------
+Common  | Data pin
+Normally Closed  | Ground
+Normally Open  | +3.3v
+
+
+## 4.2 Libraries Used
+- Pigpio
+    - https://abyz.me.uk/rpi/pigpio/examples.html
+- Signal
+    - https://en.cppreference.com/w/cpp/utility/program/signal
+- iostream
+- sstream
+- Misc common stuff (time, stdio, stdlib, stdint etc...)
+
+
+
+# 5 Random Stuff
+## 5.1 Geany Build commands
 ```
   compile: g++ -Wall -c "%f"
 
@@ -148,17 +209,23 @@ Right Outer Limit Switch  | 27
 
   execute: sudo "./%e"
  ```
+
+
+# 5.2 Notes
+- Errors that occur during the initial calibration are fatal and non recoverable (usually in the form of a locked out manipulator unable to move due to an anomalous sensor reading getting stuck in a forever loop of trying to move while locked out)
+- The left outer limit switch intermittenly experiences a glitch where it reports many toggles between closed an open circuits in quick succession if the normally closed terminal is not properly grounded
  
- # TODO
+ 
+ 
+ # 6 TODO
 - [x] Launch Files etc...
 - [ ] setup automatic launch on raspi boot
 - [x] setup remote roscore procedure and stuffs
 - [x] Figure out the automatic configuration of PosLMax and PosRMax
 - [x] Fix info being published so it actually publishes while moving (if possible)
 - [x] tool offsets
-- [ ] fix position publishing to give dist from center, not dist from outside
+- [x] fix position publishing to give dist from center, not dist from outside
 - [ ] Figure out automatic program termination for errors during initial calibration
+- [ ] Fix speed control
 
-# Misc Notes and stuff
-- Errors that occur during the initial calibration are fatal and non recoverable (usually in the form of a locked out manipulator unable to move due to an anomalous sensor reading getting stuck in a forever loop of trying to move while locked out)
-- The left outer limit switch intermittenly experiences a glitch where it reports many toggles between closed an open circuits in quick succession.
+
