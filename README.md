@@ -12,11 +12,20 @@ RaspberryPi | The rPi runs the node that controlls the end of arm tooling | 10.4
 RealSense Camera | Is how the robot scans and gets point clouds into the system | USB 3.2 to Main Computer
 
 ## How to connect everything
+
 RaspberryPi connects to a hotspot being run on the Main Computer
-  * Settings > Wi-Fi > (three bar menu in the top right) > Turn On Wi-Fi Hotspot... > Turn On
+Settings > Wi-Fi > (three bar menu in the top right) > Turn On Wi-Fi Hotspot... > Turn On
+
 SSID | Password
---- | ---
+------------- | -------------
 charlie-XPS-15-9570 | charlie-XPS-15-9570
+
+ABB Robot Arm connects via ethernet cable to the switch under the table that the arm is mounted too
+There is no DHCP server on the LAN network so the IPv4 adress for the Main computer needs to be manully set
+
+Address | Netmask
+------------- | -------------
+192.160.100.104 | 255.255.255.255
 
 ### Launch commands
 #### Abb arm hooked up with the specifications below
@@ -85,3 +94,26 @@ WAIT | Time | Seconds | Have the code wait for (Time) seconds
 HOME | None | None | Homes the robot by calling JOINT:0:0:0:0:0:0
 SCAN | None | None | Calls the scan service which starts a scan routine
 COMMENT | None | None | Allows you to leave a comment in the file to help with read ablity 
+
+## Nodes run with main.launch 
+/camera/realsense2_camera\
+/camera/realsense2_camera_manager\
+/industrial_robot_simulator\
+/joint_trajectory_action\
+/mmm_dumb_pc_assembler\
+/mmm_mqp_base_joint_sender\
+/mmm_mqp_base_scan_service\
+/mmm_pc2_to_pc\
+/mmm_pointcloud_connector\
+/move_group\
+/move_group_commander_wrappers_1647975900320271152\
+/move_group_commander_wrappers_1647975900464284549\
+/robot_state_publisher\
+/rosout\
+/rviz_charlie_XPS_15_9570_29076_5973846896081490963\
+/world_origin
+
+## Main ROS Packages we made
+mmm_mqp_base\
+mmm_cpp_base\
+abb_irb1600_6_145_support
