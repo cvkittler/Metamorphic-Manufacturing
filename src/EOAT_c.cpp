@@ -366,6 +366,7 @@ void rosSetPosition(const geometry_msgs::Point32::ConstPtr& msg){
 		targetSpeed = int(msg->z);
 		recievedInstruction = true;
 	}
+	printf("ros command %f %f %f\n",targetL,targetR,targetSpeed);
 	
 }
 
@@ -441,6 +442,8 @@ int main(int argc, char *argv[]){
 					toolRMax = posRMax;
 					publishCurrentPos();
 					printf("max positions set at %f and %f\n",posLMax,posRMax);
+					targetL = eoat.left.currentPosition;
+					targetR = eoat.right.currentPosition;
 				}
 				
 				//Initial EOAT calibration: manual mode
@@ -494,69 +497,64 @@ int main(int argc, char *argv[]){
 				printf("State = wait for instruction\n");
 				publishCurrentPos();
 				
-				//if a new instruction recieved, prep them for execution
-				if(recievedInstruction){
-					posL = targetL;
-					posR = targetR;
-					speed = targetSpeed;
-				}
-				else{
-					sleep(1); //basically a do nothing so that program continues processing errors if no instruction recieved
-				}
-				
-				
 				//Checks that no manipulator exceeded limits somehow...
 				if(exceedLimits){
 					currentState = recovery;
 				}
 				
 				//if instruction recieved check for command codes and route to appropriate execution stage
-				else{
-					if(recievedInstruction){
-						recievedInstruction = false;
-							//check for important commands
-							if(speed == -911){
-								currentState = state_e_stop;
-							}
-							else if (speed == -111){
-								currentState = set_tool_offset;
-							}
-							else if(speed == -732){
-								currentState = state_calibrate;
-							}
-						
-							//movement command parsing
-							else{
-								//convert directions for dist from center to dist from outside
-								printf("command %f %f tool %f %f",posL,posR,toolLMax,toolRMax);
-								posR = toolRMax - posR;
-								posL = toolLMax - posL;
-								printf("center %f %f\n",posL,posR);
-								//5 = ? - 20
-								if(speed<=0){
-									//printf("speed too slow\n");
-									//currentState = state_invalid_command;
-									speed = 10;
-								}
-								else if(speed>15){
-									//printf("speed too fast\n");
-									//currentState = state_invalid_command;
-									speed = 10;
-								}
-								else if(posL<0||posR<0){
-									printf("pos<0\n");
-									currentState = state_invalid_command;
-								}
-								else if(posL>posLMax||posR>posRMax){
-									printf("pos>max\n");
-									currentState = state_invalid_command;
-								}
-								else{
-									currentState = run;
-								}
-							}
-						
+				else if(recievedInstruction){
+					recievedInstruction = false;
+					printf("wait for instruction %f %f %f\n",posL,posR,speed);
+					posL = targetL;
+					posR = targetR;
+					speed = targetSpeed;
+					
+					//check for important commands
+					if(speed == -911){
+						currentState = state_e_stop;
 					}
+					else if (speed == -111){
+						currentState = set_tool_offset;
+					}
+					else if(speed == -732){
+						currentState = state_calibrate;
+					}
+				
+					//movement command parsing
+					else{
+						//convert directions for dist from center to dist from outside
+						printf("command %f %f tool %f %f",posL,posR,toolLMax,toolRMax);
+						posR = toolRMax - posR;
+						posL = toolLMax - posL;
+						printf("center %f %f\n",posL,posR);
+						
+						if(speed<=0){
+							//printf("speed too slow\n");
+							//currentState = state_invalid_command;
+							speed = 10;
+						}
+						else if(speed>15){
+							//printf("speed too fast\n");
+							//currentState = state_invalid_command;
+							speed = 10;
+						}
+						else if(posL<0||posR<0){
+							printf("pos<0\n");
+							currentState = state_invalid_command;
+						}
+						else if(posL>posLMax||posR>posRMax){
+							printf("pos>max\n");
+							currentState = state_invalid_command;
+						}
+						else{
+							currentState = run;
+						}
+					}
+						
+				}
+				else{
+					sleep(1);
 				}
 				
 				break;
