@@ -543,7 +543,7 @@ def main():
     #prepare a way to cleanly shutdown the window
     rospy.on_shutdown(lambda: mainTk.quit())
     #prepare a way to start the ros subscribers after the blocking code has been run
-    mainTk.after(110,lambda:rospy.Subscriber("joint_states", JointState, lambda msg: Thread(currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right)).start()))
+    mainTk.after(110,lambda:rospy.Subscriber("joint_states", JointState, lambda msg: Thread(currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right)).start(), queue_size=1))
     mainTk.after(120,lambda:rospy.Subscriber("mmm_eoat_position", Point32, lambda msg: Thread(eoatCallback(msg,eoatLeftFingerValue,eoatRightFingerValue,eoatStatusReadout,eoatCalabrate,eoatSetOffset,eoatSendPose)).start()))
     # BLOCKING CODE
     # start the tk gui window
@@ -596,9 +596,12 @@ def fileExecutionThread(mmmFilePath,EXECUTE_FILE_FLAG,group):
             elif(commandArray[0] == "SCAN"):
                 scanButton()
             elif(commandArray[0] == "EOAT"):
-                eoatPublisher(commandArray[1],commandArray[2],commandArray[3])
+                eoatPublisher(float(commandArray[1]),float(commandArray[2]),float(commandArray[3]))
             elif(commandArray[0] == "WAIT"):
                 sleep(float(commandArray[1]))
+            elif(commandArray[0] == "STEP"):
+                # distance, direction
+                stepCurrentPose(group,commandArray[1],commandArray[2])
         EXECUTE_FILE_FLAG.clear()
     else:
         print("Ending file Execution thread, FILE: " + mmmFilePath)
@@ -701,7 +704,7 @@ def jointAngleButtonEvoke(group,j1,j2,j3,j4,j5,j6):
     joint_goal[4] = float(j5) * (pi/180)
     joint_goal[5] = float(j6) * (pi/180)
 
-    group.go(joint_goal, wait=False)
+    group.go(joint_goal, wait=True)
 
     group.stop()
 

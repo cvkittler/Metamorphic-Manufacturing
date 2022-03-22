@@ -43,7 +43,8 @@ Errors that can happen and how to fix them:
     in trajectory_execution.launch.xml in the abb_irb1600_6_145_support package changed (1.2 -> 4) <param name="trajectory_execution/allowed_execution_duration_scaling" value="4.0"/>
 - The robot was going into a pose where the arm would crush the clay
     Changed the joint limits in the file src/abb_irb1600_6_145_support/urdf/irb1600_6_145_macro.xacro
-
+- need the ip Address of something on the hot spot
+    $ arp -a
 
 Obscure References:
 Kinematic solver README (for some reason this was hard to find)
@@ -55,7 +56,7 @@ Creating a Hotpot for the pi to Connect to over wifi
     then run the below command to configure the wifi settings (https://www.geeksforgeeks.org/creating-and-configuring-wi-fi-hotspot-in-ubuntu/)
     $ nm-connection-editor 
     Network Settings Expected
-    SID :       mmm MQP
+    SID :       
     Password:   mmmqp2021
 
 Configure multi machine on pi and Main Computer
