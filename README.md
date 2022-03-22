@@ -4,9 +4,11 @@ This branch is ment to be the base/main computer, it is where `rocore` is expect
 This code is devloped for and on Ubuntu 20.04 and ROS Melodic.
 
 ### Launch commands
-#### ABB arm hooked up with the specifications below
+#### Run these first if the Raspberry pi is connected
   ```export ROS_MASTER_URI=http://192.168.100.104:11311```\
   ```export ROS_IP=192.168.100.104```\
+  After ros core ins running on this computer then launch the ros node on the raspberry pi
+#### ABB arm hooked up with the specifications below
   ```roslaunch mmm_mqp_base main.launch sim:=false```
 #### ABB not connected
 ```roslaunch mmm_mqp_base main.launch sim:=true```
