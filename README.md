@@ -16,10 +16,49 @@ RaspberryPi | The rPi runs the node that controlls the end of arm tooling | 10.4
   ```roslaunch mmm_mqp_base main.launch sim:=false```
 #### Abb not connected
 ```roslaunch mmm_mqp_base main.launch sim:=true```
-
+### GUI Explination 
+![alt text](https://github.com/cvkittler/Metamorphic-Manufacturing/blob/images-for-readme/Screenshot%20from%202022-03-22%2014-17-15.png)
+The GUI looks like this as of (03/22/2022) 
+#### Send Work Space / Joint Space Targets
+  * This section of the gui can be used to send a target pose (with eular rotation) for the wrist of the ABB robotic arm\
+  * Each feild needs to be filled in with a point 
+  * Pushing the 'Send Target Position' button will use the values in the feilds to create a target for the arm to move too
+  * Pushing the 'Switch To Sending Joint Goals' switch the target goal from a work space goal to a joint space goal
+  * NOTE: Joint Space goals are much faster for the trajectory planner
+#### Step Pose/Angle
+  * The Stepping area is used to move the robot's pose/orientation relitive to its current pose/orientation
+  * For Pose Stepping
+    * Up/Down is in charge of the X/-X stepping (home pose has a x of about 0.85 m)
+    * Left/Right is in charge of the Y/-Y stepping (home pose has a y of 0)
+    * Diagnol is in charge of the Z/-Z stepping (Hight)
+  * For Angle Stepping
+    * Up/Down is in charge of the Pitch stepping
+    * Left/Right is in charge of the Yaw stepping
+    * Diagnol is in charge of the Role stepping
+  * Both have a home button in the middle that homes the robot
+#### Current Joint Angles/Workspace Pose
+  * Is a readout for both the joint angles and the pose and orientation for the robot
+#### End of Arm Tooling
+  * The Current finger pose should display the EOAT finger's distances from the center (updates about every second)
+  * The Send finger target pose is used to send a target pose for the EOAT fingers, the speed should never be negitive
+    *  Send the target location for each finger with the 'Send Target Pose' button
+  * The Tool offset area has both a display for the current tool offsets and a feild for setting a new tool offset for the EOAT fingers
+    *  Send the new tool offset with the 'Set Tool Offsets Button'
+  *  The MISC. EOAT section is where everything else for the EOAT control is
+    *  Current state reflects what the EOAT is currently doing
+      *  Some of the EOAT buttons will be disabled while the EOAT is not ready to recieve another command
+    *  The Calibrate Button sends a command to the EOAT to re-home the fingers
+    *  The ESTOP button sends an emergnacy stop signal to the EOAT
+#### Automated Functions
+  * The Scan button sends a service request that starts the scanning routine which publishs a pointcloud scan when done (if the Realsense camera is plugged into the main computer)
+  * Command File is in charge of open loop motion of the robot
+    * The Load file button will open a file broser in the `~/catkin_ws/src/mmm_mqp_base/commandFiles` and only show .mmm files
+    * Once opened A header and the contencce of the file will be displayed in the text area.
+    * The 'Run File' will start running the file with path of the opened file (note if a file is opened and then edited the edited version will be run)
+    * The 'Stop File' will stop the exacution of the file once the current command is done
 ### Command Language
 The open loop command files (.mmm) can be used to have the robot exacute a set of preprogrammed commands\
-I suggest storing these files in the mmm_mqp_base/commandFiles dir, there should be some premade files
+I suggest storing these files in the `mmm_mqp_base/commandFiles` dir, there should be some premade files
 #### Syntax:
 Each command must start with one of the commands and have to additinal white space\
 Each command and all of its fields should be sperated by a : without white space\
