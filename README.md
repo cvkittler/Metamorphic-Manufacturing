@@ -128,3 +128,8 @@ point_cloud_converter
 
 ## RQT GRAPH
 ![alt text](https://github.com/cvkittler/Metamorphic-Manufacturing/blob/images-for-readme/rqt_graph-3-22-2022.png)
+
+#### Note
+mmm_mqp_base\
+mmm_cpp_base\
+both have info.txt files with some notes specific to those packages
