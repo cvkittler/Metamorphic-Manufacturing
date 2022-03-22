@@ -3,6 +3,11 @@
 This branch is ment to be the base/main computer, it is where `rocore` is expected to be run from. It handles controllng the othersub systems\
 This code is devloped for and on Ubuntu 20.04 and ROS Melodic.
 
+### PreLaunch ABB setup
+The robot should be turned on\
+then on the flex pandant the systm should be switched to `System2_ROS`\
+then in the production window the pp should be reset to main and then the code can be run from there
+
 ### Launch commands
 #### Run these first if the Raspberry pi is connected
   ```export ROS_MASTER_URI=http://192.168.100.104:11311```\
