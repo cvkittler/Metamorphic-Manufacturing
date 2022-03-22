@@ -125,3 +125,6 @@ point_cloud_converter
 [abb_driver](http://wiki.ros.org/abb_driver)\
 [abb_experimental](http://wiki.ros.org/abb_experimental)\
 [realsense_camera](https://github.com/IntelRealSense/realsense-ros)
+
+## RQT GRAPH
+![alt text](https://github.com/cvkittler/Metamorphic-Manufacturing/blob/images-for-readme/rqt_graph-3-22-2022.png)
