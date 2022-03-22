@@ -1,13 +1,22 @@
 # Metamorphic-Manufacturing-ABB
 
-This branch is ment to be the base/main computer, it is where `rocore` is expected to be run from. It handles controllng the othersub systems
+This branch is ment to be the base/main computer, it is where `rocore` is expected to be run from. It handles controllng the othersub systems\
+This code is devloped for and on Ubuntu 20.04 and ROS Melodic.
 
 ## Connected Systems / Network layout
-System  | Use | IPv4 Adress 
+System  | Use | IPv4 Adress/Connection Type 
 ------------- | ------------- | -------------
 Main Computer | Control other systems | 192.168.100.104
 ABB Robot Arm | The Robotic arm system that is the main motion system | 192.168.100.100
 RaspberryPi | The rPi runs the node that controlls the end of arm tooling | 10.42.0.123 (may change)
+RealSense Camera | Is how the robot scans and gets point clouds into the system | USB 3.2 to Main Computer
+
+## How to connect everything
+RaspberryPi connects to a hotspot being run on the Main Computer
+  * Settings > Wi-Fi > (three bar menu in the top right) > Turn On Wi-Fi Hotspot... > Turn On
+SSID | Password
+--- | ---
+charlie-XPS-15-9570 | charlie-XPS-15-9570
 
 ### Launch commands
 #### Abb arm hooked up with the specifications below
@@ -16,7 +25,7 @@ RaspberryPi | The rPi runs the node that controlls the end of arm tooling | 10.4
   ```roslaunch mmm_mqp_base main.launch sim:=false```
 #### Abb not connected
 ```roslaunch mmm_mqp_base main.launch sim:=true```
-### GUI Explination 
+## GUI 
 ![alt text](https://github.com/cvkittler/Metamorphic-Manufacturing/blob/images-for-readme/Screenshot%20from%202022-03-22%2014-17-15.png)
 The GUI looks like this as of (03/22/2022) 
 #### Send Work Space / Joint Space Targets
