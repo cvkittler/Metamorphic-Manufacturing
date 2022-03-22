@@ -22,7 +22,8 @@ RealSense Camera | Is how the robot scans and gets point clouds into the system 
 ## How to connect everything
 
 RaspberryPi connects to a hotspot being run on the Main Computer
-Settings > Wi-Fi > (three bar menu in the top right) > Turn On Wi-Fi Hotspot... > Turn On
+Settings > Wi-Fi > (three bar menu in the top right) > Turn On Wi-Fi Hotspot... > Turn On\
+[Hotspot Tutorial](https://www.fosslinux.com/2576/how-to-create-and-configure-wi-fi-hotspot-in-ubuntu-17-10.htm)
 
 SSID | Password
 ------------- | -------------
