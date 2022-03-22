@@ -3,6 +3,14 @@
 This branch is ment to be the base/main computer, it is where `rocore` is expected to be run from. It handles controllng the othersub systems\
 This code is devloped for and on Ubuntu 20.04 and ROS Melodic.
 
+### Launch commands
+#### ABB arm hooked up with the specifications below
+  ```export ROS_MASTER_URI=http://192.168.100.104:11311```\
+  ```export ROS_IP=192.168.100.104```\
+  ```roslaunch mmm_mqp_base main.launch sim:=false```
+#### ABB not connected
+```roslaunch mmm_mqp_base main.launch sim:=true```
+
 ## Connected Systems / Network layout
 System  | Use | IPv4 Adress/Connection Type 
 ------------- | ------------- | -------------
@@ -27,13 +35,6 @@ Address | Netmask
 ------------- | -------------
 192.160.100.104 | 255.255.255.255
 
-### Launch commands
-#### Abb arm hooked up with the specifications below
-  ```export ROS_MASTER_URI=http://192.168.100.104:11311```\
-  ```export ROS_IP=192.168.100.104```\
-  ```roslaunch mmm_mqp_base main.launch sim:=false```
-#### Abb not connected
-```roslaunch mmm_mqp_base main.launch sim:=true```
 ## GUI 
 ![alt text](https://github.com/cvkittler/Metamorphic-Manufacturing/blob/images-for-readme/Screenshot%20from%202022-03-22%2014-17-15.png)
 The GUI looks like this as of (03/22/2022) 
