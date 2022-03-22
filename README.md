@@ -118,4 +118,10 @@ COMMENT | None | None | Allows you to leave a comment in the file to help with r
 ## Main ROS Packages we made
 mmm_mqp_base\
 mmm_cpp_base\
-abb_irb1600_6_145_support
+abb_irb1600_6_145_support\
+point_cloud_converter
+
+## Important Packages
+[abb_driver](http://wiki.ros.org/abb_driver)\
+[abb_experimental](http://wiki.ros.org/abb_experimental)\
+[realsense_camera](https://github.com/IntelRealSense/realsense-ros)
