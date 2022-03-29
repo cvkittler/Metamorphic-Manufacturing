@@ -102,11 +102,10 @@ mmm file commad  | Fields | Units | Explanation
 ------------- | ------------- | ------------- | -------------
 POSE | X:Y:Z:rX:rY:rZ | Meters | Move the end of the robot to the pose (X,Y,Z) with rotation (rX,rY,rZ)
 JOINT | j1:j2:j3:j4:j5:j6 | Degrees | Moves the robot so that each joint is at a the angle specified (Much faster than POSE)
-EOAT | Left:Right:Speed | Millimeters | Moves the EOAT fingers to distance (Left, Right) from center for each finger at speed (Speed). Speed of -911 is for 
-Estop. Speed of -732 is for Calibrate. Speed of -111 for setting offsets (might make diff command in the future)
+EOAT | Left:Right:Speed | Millimeters | Moves the EOAT fingers to distance (Left, Right) from center for each finger at speed (Speed). Speed of -911 is for Estop. Speed of -732 is for Calibrate. Speed of -111 for setting offsets (might make diff command in the future)
 EOATWAIT | Left:Right:Speed | Millimeters | Same functionality as EOAT but is blocking
-SQUISH | Direction:Distance:Step Size:Finger Closed location: Finger Open Location | (X, -X, Y, -Y, Z, -Z):Meters:Meters:Millimeters:Millimeters | Closes the EOAT to the close location, then Opens to the open location, then steps in step direction, and then repeasts untill the distance squished is distance,MOVES RELITIVE TO START LOCATION AND ROTATION
-FLATTEN | Direction:Distance:Step Size:Down Step Size: Up Step Size | (X, -X, Y, -Y, Z, -Z):Meters:Meters:Meters:Meters | Moves the eoat down by Down Step Size, then moves the eoat up by Up Step Size, then steps in step direction, and then repeasts untill the distance squished is distance,,MOVES RELITIVE TO START LOCATION AND ROTATION
+SQUISH | Direction:Distance:Step Size:Finger Closed location: Finger Open Location | (X, -X, Y, -Y, Z, -Z): Meters:Meters:Millimeters:Millimeters | Closes the EOAT to the close location, then Opens to the open location, then steps in step direction, and then repeasts untill the distance squished is distance,MOVES RELITIVE TO START LOCATION AND ROTATION
+FLATTEN | Direction:Distance:Step Size:Down Step Size: Up Step Size | (X, -X, Y, -Y, Z, -Z): Meters:Meters:Meters:Meters | Moves the eoat down by Down Step Size, then moves the eoat up by Up Step Size, then steps in step direction, and then repeasts untill the distance squished is distance,,MOVES RELITIVE TO START LOCATION AND ROTATION
 STEP | Distance:Direction | Meters | Moves the (X,Y,Z) Pose of the robot by Distance in the Direction. Direction can be (X, -X, Y, -Y, Z, -Z). Negitive distances are also supported. 
 ROTATE | Distance:Direction | Degrees | Moves the (Roll,Pitch,Yaw) Pose of the robot by Distance in the Direction. Direction can be (ROLL, -ROLL, PITCH, -PITCH, YAW, -YAW). Negitive distances are also supported.
 WAIT | Time | Seconds | Have the code wait for (Time) seconds
