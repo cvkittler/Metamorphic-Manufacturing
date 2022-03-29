@@ -26,6 +26,11 @@ ABB Robot Arm | The Robotic arm system that is the main motion system | 192.168.
 RaspberryPi | The rPi runs the node that controlls the end of arm tooling | 10.42.0.123 (may change)
 RealSense Camera | Is how the robot scans and gets point clouds into the system | USB 3.2 to Main Computer
 
+use the command `arp -a` to list all connected devices\
+the pi's mac address is `e4:5f:01:71:0f:33`\
+can connect using the command `pi@10.42.0.123` (or whatever the ip address found using arp -a)\
+password for the pi is mmmqp2021
+
 ## How to connect everything
 
 RaspberryPi connects to a hotspot being run on the Main Computer
@@ -97,8 +102,13 @@ mmm file commad  | Fields | Units | Explanation
 ------------- | ------------- | ------------- | -------------
 POSE | X:Y:Z:rX:rY:rZ | Meters | Move the end of the robot to the pose (X,Y,Z) with rotation (rX,rY,rZ)
 JOINT | j1:j2:j3:j4:j5:j6 | Degrees | Moves the robot so that each joint is at a the angle specified (Much faster than POSE)
-EOAT | Left:Right:Speed | Millimeters | Moves the EOAT fingers to distance (Left, Right) from center for each finger at speed (Speed). Speed of -911 is for Estop. Speed of -732 is for Calibrate. Speed of -111 for setting offsets (might make diff command in the future)
-STEP | Distance:Direction | Meters | Moves the (X,Y,Z) Pose of the robot by Distance in the Direction. Direction can be (X, -X, Y, -Y, Z, -Z). Negitive distances are also supported.
+EOAT | Left:Right:Speed | Millimeters | Moves the EOAT fingers to distance (Left, Right) from center for each finger at speed (Speed). Speed of -911 is for 
+Estop. Speed of -732 is for Calibrate. Speed of -111 for setting offsets (might make diff command in the future)
+EOATWAIT | Left:Right:Speed | Millimeters | Same functionality as EOAT but is blocking
+SQUISH | Direction:Distance:Step Size:Finger Closed location: Finger Open Location | (X, -X, Y, -Y, Z, -Z):Meters:Meters:Millimeters:Millimeters | Closes the EOAT to the close location, then Opens to the open location, then steps in step direction, and then repeasts untill the distance squished is distance,MOVES RELITIVE TO START LOCATION AND ROTATION
+FLATTEN | Direction:Distance:Step Size:Down Step Size: Up Step Size | (X, -X, Y, -Y, Z, -Z):Meters:Meters:Meters:Meters | Moves the eoat down by Down Step Size, then moves the eoat up by Up Step Size, then steps in step direction, and then repeasts untill the distance squished is distance,,MOVES RELITIVE TO START LOCATION AND ROTATION
+STEP | Distance:Direction | Meters | Moves the (X,Y,Z) Pose of the robot by Distance in the Direction. Direction can be (X, -X, Y, -Y, Z, -Z). Negitive distances are also supported. 
+ROTATE | Distance:Direction | Degrees | Moves the (Roll,Pitch,Yaw) Pose of the robot by Distance in the Direction. Direction can be (ROLL, -ROLL, PITCH, -PITCH, YAW, -YAW). Negitive distances are also supported.
 WAIT | Time | Seconds | Have the code wait for (Time) seconds
 HOME | None | None | Homes the robot by calling JOINT:0:0:0:0:0:0
 SCAN | None | None | Calls the scan service which starts a scan routine

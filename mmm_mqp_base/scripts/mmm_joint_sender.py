@@ -28,6 +28,7 @@ toggleButtonState = True
 eoatPub = None
 mmmFilePath = ""
 EXECUTE_FILE_FLAG = Event()
+eoatState = 'none'
 
 # gui constants
 READOUT_BACKROUND_COLOR = '#3c3c3c' #Backround color of a value readout
@@ -597,15 +598,62 @@ def fileExecutionThread(mmmFilePath,EXECUTE_FILE_FLAG,group):
                 scanButton()
             elif(commandArray[0] == "EOAT"):
                 eoatPublisher(float(commandArray[1]),float(commandArray[2]),float(commandArray[3]))
+            elif(commandArray[0] == "EOATWAIT"):
+                eoatPublisherBlocking(float(commandArray[1]),float(commandArray[2]),float(commandArray[3]))
             elif(commandArray[0] == "WAIT"):
                 sleep(float(commandArray[1]))
             elif(commandArray[0] == "STEP"):
                 # distance, direction
                 stepCurrentPose(group,commandArray[1],commandArray[2])
+            elif(commandArray[0] == "ROTATE"):
+                stepCurrentRotation(group,commandArray[1],commandArray[2])
+            elif(commandArray[0] == "SQUISH"):
+                dir = commandArray[1]
+                dist = round(commandArray[2],3)
+                stepSize = round(commandArray[3],3)
+                inPose = commandArray[4]
+                outPose = commandArray[5]
+                eoatPublisherBlocking(outPose,outPose,10)
+                eoatPublisherBlocking(outPose,outPose,10)
+                for i in range(0,dist * 1000, stepSize * 1000):
+                    stepCurrentPose(group,stepSize,dir)
+                    eoatPublisherBlocking(inPose,inPose,10)
+                    eoatPublisherBlocking(outPose,outPose,10)
+                else:
+                    if not (i / 1000) == dist:
+                        stepSize = dist - (i / 1000)
+                        stepCurrentPose(group,stepSize,dir)
+                        eoatPublisherBlocking(inPose,inPose,10)
+                        eoatPublisherBlocking(outPose,outPose,10)
+            elif(commandArray[0] == "FLATTEN"):
+                dir = commandArray[1]
+                dist = round(commandArray[2],3)
+                stepSize = round(commandArray[3],3)
+                downHeight = commandArray[4]
+                upHeight = commandArray[5]
+                stepCurrentPose(group,downHeight,"-Z")
+                stepCurrentPose(group,upHeight,"Z")
+                for i in range(0,dist * 1000, stepSize * 1000):
+                    stepCurrentPose(group,stepSize,dir)
+                    stepCurrentPose(group,downHeight,"-Z")
+                    stepCurrentPose(group,upHeight,"Z")
+                else:
+                    if not (i / 1000) == dist:
+                        stepSize = dist - (i / 1000)
+                        stepCurrentPose(group,stepSize,dir)
+                        stepCurrentPose(group,downHeight,"-Z")
+                        stepCurrentPose(group,upHeight,"Z")
         EXECUTE_FILE_FLAG.clear()
     else:
         print("Ending file Execution thread, FILE: " + mmmFilePath)
-        return
+        return 
+
+def eoatPublisherBlocking(_x, _y, _z):
+    global eoatState
+    eoatPublisher(_x, _y, _z)
+    while eoatState == "Wait":
+        sleep(0.01)
+
 # function for calibrating the end of arm tooling
 def eoatPublisher(_x, _y, _z):
     global eoatPub
@@ -617,6 +665,7 @@ def eoatPublisher(_x, _y, _z):
 
 # end of arm tooling callback function
 def eoatCallback(msg, leftLabel,rightLabel,statusLabel,calabrateButton,offsetButton,sendPoseButton):
+    global eoatState
     leftLabel.config(text=str(msg.x))
     rightLabel.config(text=str(msg.y))
     state = int(msg.z)
@@ -625,11 +674,13 @@ def eoatCallback(msg, leftLabel,rightLabel,statusLabel,calabrateButton,offsetBut
         calabrateButton['state'] = tk.NORMAL
         offsetButton['state'] = tk.NORMAL
         sendPoseButton['state'] = tk.NORMAL
+        eoatState = "Ready"
     else:
         #if the eoat isn't ready for a command disable the buttons
         calabrateButton['state'] = tk.DISABLED
         offsetButton['state'] = tk.DISABLED
         sendPoseButton['state'] = tk.DISABLED
+        eoatState = "Wait"
     if(state == 1):
         statusLabel.config(text = "Instruction Execution in Progress")
     elif(state == 2):

@@ -1,0 +1,8 @@
+*
+*/
+!*/mmm_cpp_base/**
+!src/mmm_mqp_base/
+!abb_irb1600_6_145_support/**
+!point_cloud_converter/**
+!.gitignore
+!
