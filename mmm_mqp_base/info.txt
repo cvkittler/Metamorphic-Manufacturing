@@ -64,3 +64,7 @@ Creating a Hotpot for the pi to Connect to over wifi
 
 Configure multi machine on pi and Main Computer
     https://husarion.com/tutorials/ros-tutorials/5-running-ros-on-multiple-machines/;
+
+A page that shows good python trajectory planning/execution examples
+    https://python.hotexamples.com/examples/moveit_commander/MoveGroupCommander/compute_cartesian_path/python-movegroupcommander-compute_cartesian_path-method-examples.html
+

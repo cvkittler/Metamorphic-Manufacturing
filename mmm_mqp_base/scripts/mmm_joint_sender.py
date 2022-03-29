@@ -609,38 +609,39 @@ def fileExecutionThread(mmmFilePath,EXECUTE_FILE_FLAG,group):
                 stepCurrentRotation(group,commandArray[1],commandArray[2])
             elif(commandArray[0] == "SQUISH"):
                 dir = commandArray[1]
-                dist = round(commandArray[2],3)
-                stepSize = round(commandArray[3],3)
-                inPose = commandArray[4]
-                outPose = commandArray[5]
-                eoatPublisherBlocking(outPose,outPose,10)
-                eoatPublisherBlocking(outPose,outPose,10)
-                for i in range(0,dist * 1000, stepSize * 1000):
+                dist = round(float(commandArray[2]),3)
+                stepSize = round(float(commandArray[3]),3)
+                inPose = float(commandArray[4])
+                outPose = float(commandArray[5])
+                for i in range(0,int(dist * 1000), int(stepSize * 1000)):
                     stepCurrentPose(group,stepSize,dir)
                     eoatPublisherBlocking(inPose,inPose,10)
                     eoatPublisherBlocking(outPose,outPose,10)
+                    if (not EXECUTE_FILE_FLAG.isSet()):
+                        break
                 else:
                     if not (i / 1000) == dist:
-                        stepSize = dist - (i / 1000)
+                        stepSize = dist - (float(i) / 1000)
                         stepCurrentPose(group,stepSize,dir)
                         eoatPublisherBlocking(inPose,inPose,10)
                         eoatPublisherBlocking(outPose,outPose,10)
             elif(commandArray[0] == "FLATTEN"):
                 dir = commandArray[1]
-                dist = round(commandArray[2],3)
-                stepSize = round(commandArray[3],3)
-                downHeight = commandArray[4]
-                upHeight = commandArray[5]
-                stepCurrentPose(group,downHeight,"-Z")
-                stepCurrentPose(group,upHeight,"Z")
-                for i in range(0,dist * 1000, stepSize * 1000):
+                dist = round(float(commandArray[2]),3)
+                stepSize = round(float(commandArray[3]),3)
+                downHeight = float(commandArray[4])
+                upHeight = float(commandArray[5])
+                print("FLATTEN: ", str(dist), str(stepSize))
+                for i in range(0,int(dist * 1000), int(stepSize * 1000)):
                     stepCurrentPose(group,stepSize,dir)
                     stepCurrentPose(group,downHeight,"-Z")
                     stepCurrentPose(group,upHeight,"Z")
+                    if (not EXECUTE_FILE_FLAG.isSet()):
+                        break
                 else:
                     if not (i / 1000) == dist:
-                        stepSize = dist - (i / 1000)
-                        stepCurrentPose(group,stepSize,dir)
+                        stepRemainder = dist - (float(i) / 1000)
+                        stepCurrentPose(group,stepRemainder,dir)
                         stepCurrentPose(group,downHeight,"-Z")
                         stepCurrentPose(group,upHeight,"Z")
         EXECUTE_FILE_FLAG.clear()
@@ -772,32 +773,29 @@ def targetPoseButtonEvoke(group,X,Y,Z,rX,rY,rZ):
     pose_goal.pose.position.y = float(Y)
     pose_goal.pose.position.z = float(Z)
 
-    group.set_pose_target(pose_goal)
     (plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
-    group.go(wait=True)
+    group.execute(plan,wait=True)
 
 def stepCurrentPose(group,deltaString,direction):
     group.stop()
     group.clear_pose_targets()
-    print("Target Pose Step Submitted")
     delta = float(deltaString)
     pose_goal = deepcopy(group.get_current_pose())
     if (direction.upper() == "X"):
-        pose_goal.pose.position.x += float(delta)
+        pose_goal.pose.position.x += delta
     elif (direction.upper() == "Y"):
-        pose_goal.pose.position.y += float(delta)
+        pose_goal.pose.position.y += delta
     elif (direction.upper() == "Z"):
-        pose_goal.pose.position.z += float(delta)
+        pose_goal.pose.position.z += delta
     elif (direction.upper() == "-X"):
-        pose_goal.pose.position.x -= float(delta)
+        pose_goal.pose.position.x -= delta
     elif (direction.upper() == "-Y"):
-        pose_goal.pose.position.y -= float(delta)
+        pose_goal.pose.position.y -= delta
     elif (direction.upper() == "-Z"):
-        pose_goal.pose.position.z -= float(delta)
+        pose_goal.pose.position.z -= delta
 
-    group.set_pose_target(pose_goal)
     (plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
-    group.go(wait=True)
+    group.execute(plan,wait=True)
 
 def stepCurrentRotation(group,deltaString,direction):
     group.stop()
@@ -833,9 +831,8 @@ def stepCurrentRotation(group,deltaString,direction):
     pose_goal.pose.orientation.z = q[2]
     pose_goal.pose.orientation.w = q[3]
 
-    group.set_pose_target(pose_goal)
     (plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
-    group.go(wait=True)
+    group.execute(plan,wait=True)
 
 def currentJointStateCallback(msg,e1,e2,e3,e4,e5,e6,group,e1right,e2right,e3right,e4right,e5right,e6right):
     positions = msg.position
