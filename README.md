@@ -151,5 +151,5 @@ mmm_cpp_base\
 both have info.txt files with some notes specific to those packages
 
 ### Good Links to Have
-[Moveit Documentation](https://moveit.ros.org/documentation/source-code-api/)
+[Moveit Documentation](https://moveit.ros.org/documentation/source-code-api/)\
 [Kinamatic Solver](https://bitbucket.org/traclabs/trac_ik/src/9ef45fd67ede62d389c410720ad3915bb8c1dc8f/trac_ik_lib/README.md)
