@@ -613,6 +613,8 @@ def fileExecutionThread(mmmFilePath,EXECUTE_FILE_FLAG,group):
                 stepSize = round(float(commandArray[3]),3)
                 inPose = float(commandArray[4])
                 outPose = float(commandArray[5])
+                eoatPublisherBlocking(inPose,inPose,10)
+                eoatPublisherBlocking(outPose,outPose,10)
                 for i in range(0,int(dist * 1000), int(stepSize * 1000)):
                     stepCurrentPose(group,stepSize,dir)
                     eoatPublisherBlocking(inPose,inPose,10)
@@ -631,7 +633,8 @@ def fileExecutionThread(mmmFilePath,EXECUTE_FILE_FLAG,group):
                 stepSize = round(float(commandArray[3]),3)
                 downHeight = float(commandArray[4])
                 upHeight = float(commandArray[5])
-                print("FLATTEN: ", str(dist), str(stepSize))
+                stepCurrentPose(group,downHeight,"-Z")
+                stepCurrentPose(group,upHeight,"Z")
                 for i in range(0,int(dist * 1000), int(stepSize * 1000)):
                     stepCurrentPose(group,stepSize,dir)
                     stepCurrentPose(group,downHeight,"-Z")
