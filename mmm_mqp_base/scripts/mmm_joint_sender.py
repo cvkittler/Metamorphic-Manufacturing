@@ -28,7 +28,7 @@ toggleButtonState = True
 eoatPub = None
 mmmFilePath = ""
 EXECUTE_FILE_FLAG = Event()
-eoatState = 'none'
+EOAT_READY_FLAG = Event()
 
 # gui constants
 READOUT_BACKROUND_COLOR = '#3c3c3c' #Backround color of a value readout
@@ -536,7 +536,7 @@ def main():
 
 
     #make ros publisher(s)
-    global toggleButtonState, eoatPub
+    global toggleButtonState, eoatPub,EOAT_READY_FLAG
     eoatPub = rospy.Publisher("mmm_eoat_command", Point32, queue_size=1)
     pub = rospy.Publisher("pointcloudOnOff", Bool, queue_size=10)
     
@@ -545,7 +545,7 @@ def main():
     rospy.on_shutdown(lambda: mainTk.quit())
     #prepare a way to start the ros subscribers after the blocking code has been run
     mainTk.after(110,lambda:rospy.Subscriber("joint_states", JointState, lambda msg: Thread(currentJointStateCallback(msg, e1center,e2center,e3center,e4center,e5center,e6center,group,e1right,e2right,e3right,e4right,e5right,e6right)).start(), queue_size=1))
-    mainTk.after(120,lambda:rospy.Subscriber("mmm_eoat_position", Point32, lambda msg: Thread(eoatCallback(msg,eoatLeftFingerValue,eoatRightFingerValue,eoatStatusReadout,eoatCalabrate,eoatSetOffset,eoatSendPose)).start()))
+    mainTk.after(120,lambda:rospy.Subscriber("mmm_eoat_position", Point32, lambda msg: Thread(eoatCallback(msg,eoatLeftFingerValue,eoatRightFingerValue,eoatStatusReadout,eoatCalabrate,eoatSetOffset,eoatSendPose,EOAT_READY_FLAG)).start(), queue_size=1))
     # BLOCKING CODE
     # start the tk gui window
     mainTk.mainloop()
@@ -564,16 +564,18 @@ def stopFileExecution():
     EXECUTE_FILE_FLAG.clear()
 
 def handleFileExecution():
-    global mmmFilePath,EXECUTE_FILE_FLAG, group
+    global mmmFilePath,EXECUTE_FILE_FLAG,EOAT_READY_FLAG, group
     EXECUTE_FILE_FLAG.set()
-    Thread(target=fileExecutionThread, args=(mmmFilePath,EXECUTE_FILE_FLAG,group)).start()
+    Thread(target=fileExecutionThread, args=(mmmFilePath,EXECUTE_FILE_FLAG,EOAT_READY_FLAG,group)).start()
 
-def fileExecutionThread(mmmFilePath,EXECUTE_FILE_FLAG,group):
+def fileExecutionThread(mmmFilePath,EXECUTE_FILE_FLAG,EOAT_READY_FLAG,group):
     print("Starting File Execution thread, FILE: " + mmmFilePath)
     file = open(mmmFilePath,'r').read().replace('\n','')
     commands = file.split(';')
     while(EXECUTE_FILE_FLAG.isSet()):    
         for i, command in enumerate( commands):
+            while not EOAT_READY_FLAG.is_set():
+                sleep(0.15)
             print(str(i) + " " + command + " | " + str(rospy.get_time()))
             commandArray = command.split(':')
             if (not EXECUTE_FILE_FLAG.isSet()):
@@ -599,7 +601,7 @@ def fileExecutionThread(mmmFilePath,EXECUTE_FILE_FLAG,group):
             elif(commandArray[0] == "EOAT"):
                 eoatPublisher(float(commandArray[1]),float(commandArray[2]),float(commandArray[3]))
             elif(commandArray[0] == "EOATWAIT"):
-                eoatPublisherBlocking(float(commandArray[1]),float(commandArray[2]),float(commandArray[3]))
+                eoatPublisherBlocking(float(commandArray[1]),float(commandArray[2]),float(commandArray[3]),EOAT_READY_FLAG)
             elif(commandArray[0] == "WAIT"):
                 sleep(float(commandArray[1]))
             elif(commandArray[0] == "STEP"):
@@ -613,20 +615,20 @@ def fileExecutionThread(mmmFilePath,EXECUTE_FILE_FLAG,group):
                 stepSize = round(float(commandArray[3]),3)
                 inPose = float(commandArray[4])
                 outPose = float(commandArray[5])
-                eoatPublisherBlocking(inPose,inPose,10)
-                eoatPublisherBlocking(outPose,outPose,10)
+                eoatPublisherBlocking(inPose,inPose,10,EOAT_READY_FLAG)
+                eoatPublisherBlocking(outPose,outPose,10,EOAT_READY_FLAG)
                 for i in range(0,int(dist * 1000), int(stepSize * 1000)):
                     stepCurrentPose(group,stepSize,dir)
-                    eoatPublisherBlocking(inPose,inPose,10)
-                    eoatPublisherBlocking(outPose,outPose,10)
+                    eoatPublisherBlocking(inPose,inPose,10,EOAT_READY_FLAG)
+                    eoatPublisherBlocking(outPose,outPose,10,EOAT_READY_FLAG)
                     if (not EXECUTE_FILE_FLAG.isSet()):
                         break
                 else:
                     if not (i / 1000) == dist:
                         stepSize = dist - (float(i) / 1000)
                         stepCurrentPose(group,stepSize,dir)
-                        eoatPublisherBlocking(inPose,inPose,10)
-                        eoatPublisherBlocking(outPose,outPose,10)
+                        eoatPublisherBlocking(inPose,inPose,10,EOAT_READY_FLAG)
+                        eoatPublisherBlocking(outPose,outPose,10,EOAT_READY_FLAG)
             elif(commandArray[0] == "FLATTEN"):
                 dir = commandArray[1]
                 dist = round(float(commandArray[2]),3)
@@ -652,11 +654,9 @@ def fileExecutionThread(mmmFilePath,EXECUTE_FILE_FLAG,group):
         print("Ending file Execution thread, FILE: " + mmmFilePath)
         return 
 
-def eoatPublisherBlocking(_x, _y, _z):
-    global eoatState
+def eoatPublisherBlocking(_x, _y, _z, EOAT_READY_FLAG):
+    EOAT_READY_FLAG.clear()
     eoatPublisher(_x, _y, _z)
-    while eoatState == "Wait":
-        sleep(0.01)
 
 # function for calibrating the end of arm tooling
 def eoatPublisher(_x, _y, _z):
@@ -668,8 +668,7 @@ def eoatPublisher(_x, _y, _z):
     eoatPub.publish(point)
 
 # end of arm tooling callback function
-def eoatCallback(msg, leftLabel,rightLabel,statusLabel,calabrateButton,offsetButton,sendPoseButton):
-    global eoatState
+def eoatCallback(msg, leftLabel,rightLabel,statusLabel,calabrateButton,offsetButton,sendPoseButton,EOAT_READY_FLAG):
     leftLabel.config(text=str(msg.x))
     rightLabel.config(text=str(msg.y))
     state = int(msg.z)
@@ -678,13 +677,15 @@ def eoatCallback(msg, leftLabel,rightLabel,statusLabel,calabrateButton,offsetBut
         calabrateButton['state'] = tk.NORMAL
         offsetButton['state'] = tk.NORMAL
         sendPoseButton['state'] = tk.NORMAL
-        eoatState = "Ready"
+        EOAT_READY_FLAG.set()
+        print("EOAT READY")
     else:
         #if the eoat isn't ready for a command disable the buttons
         calabrateButton['state'] = tk.DISABLED
         offsetButton['state'] = tk.DISABLED
         sendPoseButton['state'] = tk.DISABLED
-        eoatState = "Wait"
+        EOAT_READY_FLAG.clear()
+        print("EOAT WAIT")
     if(state == 1):
         statusLabel.config(text = "Instruction Execution in Progress")
     elif(state == 2):
@@ -742,7 +743,7 @@ def validateJointInput(STR, joint):
         return False
 
 def jointAngleButtonEvoke(group,j1,j2,j3,j4,j5,j6):
-    print("Joint Angles Submitted")
+    group.stop()
     group.clear_pose_targets()
     #convert the given degrees to rads
     for degrees in (j1,j2,j3,j4,j5,j6):
@@ -759,9 +760,9 @@ def jointAngleButtonEvoke(group,j1,j2,j3,j4,j5,j6):
     joint_goal[4] = float(j5) * (pi/180)
     joint_goal[5] = float(j6) * (pi/180)
 
-    group.go(joint_goal, wait=True)
-
-    group.stop()
+    #group.set_joint_value_target(joint_goal)
+    #group.plan()
+    group.go(joint_goal,wait=True)
 
 def targetPoseButtonEvoke(group,X,Y,Z,rX,rY,rZ):
     group.stop()
@@ -776,8 +777,9 @@ def targetPoseButtonEvoke(group,X,Y,Z,rX,rY,rZ):
     pose_goal.pose.position.y = float(Y)
     pose_goal.pose.position.z = float(Z)
 
-    (plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
-    group.execute(plan,wait=True)
+    #group.set_pose_target(pose_goal)
+    #(plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
+    group.go(pose_goal,wait=True)
 
 def stepCurrentPose(group,deltaString,direction):
     group.stop()
@@ -797,8 +799,9 @@ def stepCurrentPose(group,deltaString,direction):
     elif (direction.upper() == "-Z"):
         pose_goal.pose.position.z -= delta
 
-    (plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
-    group.execute(plan,wait=True)
+    #group.set_pose_target(pose_goal)
+    #(plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
+    group.go(pose_goal,wait=True)
 
 def stepCurrentRotation(group,deltaString,direction):
     group.stop()
@@ -834,8 +837,9 @@ def stepCurrentRotation(group,deltaString,direction):
     pose_goal.pose.orientation.z = q[2]
     pose_goal.pose.orientation.w = q[3]
 
-    (plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
-    group.execute(plan,wait=True)
+    #group.set_pose_target(pose_goal)
+    #(plan, fraction) = group.compute_cartesian_path([group.get_current_pose().pose,pose_goal.pose],0.01,0.0)
+    group.go(pose_goal,wait=True)
 
 def currentJointStateCallback(msg,e1,e2,e3,e4,e5,e6,group,e1right,e2right,e3right,e4right,e5right,e6right):
     positions = msg.position
