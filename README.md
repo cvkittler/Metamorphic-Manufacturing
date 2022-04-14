@@ -98,7 +98,7 @@ Each command line must end with a ; \
 optionally the next command can be on the same line or next line (recommend for readablity in the GUI)\
 optionally can add a word or phrase after the last ; (ie. END) which will be printed as the last command in the terminal
 #### Commands
-mmm file commad  | Fields | Units | Explanation
+MMM file command  | Fields | Units | Explanation
 ------------- | ------------- | ------------- | -------------
 POSE | X:Y:Z:rX:rY:rZ | Meters | Move the end of the robot to the pose (X,Y,Z) with rotation (rX,rY,rZ)
 JOINT | j1:j2:j3:j4:j5:j6 | Degrees | Moves the robot so that each joint is at a the angle specified (Much faster than POSE)
