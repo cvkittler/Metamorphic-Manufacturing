@@ -20,4 +20,4 @@ Documentation for each subsystem can be found in the respective readme files for
 
 [Readme for EOAT](https://github.com/cvkittler/Metamorphic-Manufacturing/tree/EOAT_ros#readme)
 
-[Readme for Outlier Detection](https://github.com/cvkittler/Metamorphic-Manufacturing#readme)
+[Readme for Outlier Detection](https://github.com/cvkittler/Metamorphic-Manufacturing/blob/Outlier-Detection/Outlier_Detection_ReadMe.txt)
