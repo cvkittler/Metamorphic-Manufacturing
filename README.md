@@ -29,7 +29,7 @@ This project utilizes a Raspberry Pi 4 running ROS Melodic on Raspberry Pi OS. S
 
 2. Setup a wifi hotspot on the Ubuntu machine running the high level code
     1. Network SSID: `charlie-XPS-15-9570`
-    2. Network Password `charlie-XPS-15-9570`
+    2. Network Password `mmmqp2021`
     3. [Ubuntu Hotspot Help](https://www.fosslinux.com/2576/how-to-create-and-configure-wi-fi-hotspot-in-ubuntu-17-10.htm)
 
 3. Power on the Raspberry Pi (note: the hotspot must be running prior to powering on the pi because of how the VNC server on the Pi Works)
@@ -74,6 +74,8 @@ to end the program, hit ctrl+c in each of the terminals that pop up
 
 ## 2.4 Running the rogram with a remote roscore 
 ie using with the ABB1600 under unified ROS control from another machine. Commands can be issued either from the command line on the Raspberry Pi OR another ROS Node
+
+#### 2.4.1 Setup the remote roscore
 - Connect the Raspberry Pi a wifi hotspot running on the machine running roscore (likely the ubuntu machine used in [Section 1](https://github.com/cvkittler/Metamorphic-Manufacturing/tree/EOAT_ros#1-initial-setup))
 - Remote desktop to the Raspberry Pi using the method of your choice
 
@@ -88,12 +90,25 @@ rosrun mmmqp_eoat mmmqp_eoat_node
 read line
 ```
 
+#### 2.4.2 Running with Remote Desktop (ie VNC viewer or Teamviewer)
 Run the following commands in a terminal:
 ```
 cd ~/catkin_ws/src/mmmqp_eoat/src/runscripts
 sudo bash run-remote.sh
 ```
 to end the program, hit ctrl+c in each of the terminals that pop up
+
+
+#### 2.4.3 Running with SSH
+In a terminal from a computer on the hotspot
+```
+ssh pi@[raspi ip on hotspot]
+[enter pw "mmmqp2021" when prompted]
+sudo killall pigpiod
+cd ~/catkin_ws/src/mmmqp_eoat/src/runscripts
+sudo bash roscore-program-remote.sh
+```
+
 
 See [README for the ABB_ros](https://github.com/cvkittler/Metamorphic-Manufacturing/tree/ABB-ROS#launch-commands) branch for instructions setting up the remote roscore
 
