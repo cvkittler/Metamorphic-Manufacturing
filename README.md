@@ -39,7 +39,7 @@ Settings > Wi-Fi > (three bar menu in the top right) > Turn On Wi-Fi Hotspot... 
 
 SSID | Password
 ------------- | -------------
-charlie-XPS-15-9570 | charlie-XPS-15-9570
+charlie-XPS-15-9570 | mmmqp2021
 
 ABB Robot Arm connects via ethernet cable to the switch under the table that the arm is mounted too
 There is no DHCP server on the LAN network so the IPv4 adress for the Main computer needs to be manully set
