@@ -11,6 +11,7 @@ Please ensure you are familiar with the interfaces and setup of all subsystems p
 Each independant subsystem of the project has it's code in a seperate branch:
 - The high level command program is on the branch `ABB-ROS`
 - The End of Arm Tooling program is on the branch `EOAT_ros`
+- The Outlier Detection code is on the brach `Outlier-Detection`
 
 
 Documentation for each subsystem can be found in the respective readme files for each branch, linked here for convenience
@@ -18,3 +19,5 @@ Documentation for each subsystem can be found in the respective readme files for
 [Readme for ABB/High Level](https://github.com/cvkittler/Metamorphic-Manufacturing/tree/ABB-ROS#readme)
 
 [Readme for EOAT](https://github.com/cvkittler/Metamorphic-Manufacturing/tree/EOAT_ros#readme)
+
+[Readme for Outlier Detection](https://github.com/cvkittler/Metamorphic-Manufacturing#readme)
